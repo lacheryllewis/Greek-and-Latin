@@ -4,8 +4,8 @@ import './App.css';
 
 const API_BASE_URL = process.env.REACT_APP_BACKEND_URL || import.meta.env.REACT_APP_BACKEND_URL;
 
-// Empower U Logo Component
-const EmpowerULogo = () => (
+// Greek and Latin Academy Logo Component
+const AcademyLogo = () => (
   <div className="flex flex-col items-center mb-8">
     <div className="relative">
       {/* Logo simulation - replace with actual image */}
@@ -17,33 +17,46 @@ const EmpowerULogo = () => (
       </div>
     </div>
     <div className="text-center mt-4">
-      <h2 className="text-lg font-medium text-gray-700">Greek and Latin Affixes</h2>
-      <p className="text-sm text-gray-500">Word Weaver Learning Platform</p>
+      <h2 className="text-xl font-bold text-navy-700">Greek and Latin Academy</h2>
+      <p className="text-sm text-gray-500">Master the Building Blocks of Language</p>
     </div>
   </div>
 );
 
-// Jamaal Character Component
+// Jamaal Character Component with uploaded image
 const JamaalCharacter = ({ message, size = "medium" }) => {
   const sizeClasses = {
     small: "w-16 h-16",
-    medium: "w-32 h-32",
+    medium: "w-32 h-32", 
     large: "w-48 h-48"
   };
 
   return (
     <div className="flex flex-col items-center">
-      {/* Character placeholder - replace with actual image */}
-      <div className={`${sizeClasses[size]} bg-gradient-to-br from-yellow-400 to-orange-500 rounded-full flex items-center justify-center border-4 border-gold-500 shadow-lg relative`}>
-        <div className="text-center">
-          <div className="text-2xl">👨🏾‍🎓</div>
-          <div className="text-xs font-bold text-navy-900">JAMAAL</div>
+      {/* Use the actual Jamaal image */}
+      <div className={`${sizeClasses[size]} relative overflow-hidden rounded-full border-4 border-gold-500 shadow-lg`}>
+        <img 
+          src="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAABAAEDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAUEAEAAAAAAAAAAAAAAAAAAAAA/8QAFQEBAQAAAAAAAAAAAAAAAAAAAAX/xAAUEQEAAAAAAAAAAAAAAAAAAAAA/9oADAMBAAIRAxEAPwCdABmX/9k="
+          alt="Jamaal - The Word Weaver"
+          className="w-full h-full object-cover"
+          onError={(e) => {
+            // Fallback to placeholder if image fails to load
+            e.target.style.display = 'none';
+            e.target.nextSibling.style.display = 'flex';
+          }}
+        />
+        {/* Fallback placeholder */}
+        <div className="w-full h-full bg-gradient-to-br from-yellow-400 to-orange-500 rounded-full flex items-center justify-center absolute top-0 left-0" style={{display: 'none'}}>
+          <div className="text-center">
+            <div className="text-2xl">👨🏾‍🎓</div>
+            <div className="text-xs font-bold text-navy-900">JAMAAL</div>
+          </div>
         </div>
         {/* Glow effect */}
         <div className="absolute inset-0 bg-yellow-300 rounded-full animate-pulse opacity-20"></div>
       </div>
       {message && (
-        <div className="mt-2 bg-white rounded-lg px-4 py-2 shadow-lg border-l-4 border-gold-500 relative">
+        <div className="mt-2 bg-white rounded-lg px-4 py-2 shadow-lg border-l-4 border-gold-500 relative max-w-xs">
           <p className="text-sm text-gray-700 font-medium">{message}</p>
           <div className="absolute -top-2 left-4 w-4 h-4 bg-white transform rotate-45 border-l border-t border-gray-200"></div>
         </div>
@@ -75,18 +88,330 @@ const Badge = ({ name, earned = false }) => (
   </div>
 );
 
+// Study Set Selection Component
+const StudySetSelector = ({ studySets, selectedSet, onSetChange }) => (
+  <div className="mb-6">
+    <label className="block text-sm font-medium text-navy-700 mb-2">
+      Select Study Set:
+    </label>
+    <select 
+      value={selectedSet} 
+      onChange={(e) => onSetChange(e.target.value)}
+      className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gold-500 focus:border-transparent"
+    >
+      <option value="all">All Words ({studySets.all?.length || 0})</option>
+      {Object.entries(studySets).filter(([key]) => key !== 'all').map(([setName, words]) => (
+        <option key={setName} value={setName}>
+          {setName} ({words.length} words)
+        </option>
+      ))}
+    </select>
+  </div>
+);
+
+// Multiple Choice Component
+const MultipleChoice = ({ currentWord, onAnswer }) => {
+  const [choices, setChoices] = useState([]);
+  const [selectedAnswer, setSelectedAnswer] = useState(null);
+
+  useEffect(() => {
+    if (currentWord) {
+      // Generate multiple choice options
+      const correctAnswer = currentWord.meaning;
+      const wrongAnswers = [
+        "to move or transport",
+        "related to sound or music", 
+        "concerning light or vision",
+        "about time or measurement",
+        "dealing with earth or ground",
+        "involving life or living things"
+      ].filter(answer => answer !== correctAnswer).slice(0, 2);
+      
+      const allChoices = [correctAnswer, ...wrongAnswers].sort(() => Math.random() - 0.5);
+      setChoices(allChoices);
+      setSelectedAnswer(null);
+    }
+  }, [currentWord]);
+
+  const handleChoiceClick = (choice) => {
+    setSelectedAnswer(choice);
+    const isCorrect = choice === currentWord.meaning;
+    setTimeout(() => {
+      onAnswer(isCorrect);
+      setSelectedAnswer(null);
+    }, 1000);
+  };
+
+  return (
+    <div className="space-y-4">
+      <h3 className="text-xl font-semibold text-navy-800 mb-4">
+        What does "{currentWord?.root}" mean?
+      </h3>
+      <div className="space-y-3">
+        {choices.map((choice, index) => (
+          <button
+            key={index}
+            onClick={() => handleChoiceClick(choice)}
+            disabled={selectedAnswer !== null}
+            className={`w-full p-4 text-left rounded-lg border-2 transition-all ${
+              selectedAnswer === null
+                ? 'border-gray-300 hover:border-gold-400 hover:bg-gold-50'
+                : selectedAnswer === choice
+                ? choice === currentWord.meaning
+                  ? 'border-green-500 bg-green-100 text-green-800'
+                  : 'border-red-500 bg-red-100 text-red-800'
+                : choice === currentWord.meaning
+                ? 'border-green-500 bg-green-100 text-green-800'
+                : 'border-gray-300 bg-gray-50'
+            }`}
+          >
+            <div className="flex items-center justify-between">
+              <span className="font-medium">{choice}</span>
+              {selectedAnswer && choice === currentWord.meaning && (
+                <span className="text-green-600">✓</span>
+              )}
+              {selectedAnswer && selectedAnswer === choice && choice !== currentWord.meaning && (
+                <span className="text-red-600">✗</span>
+              )}
+            </div>
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+};
+
+// Slide Creator Component
+const SlideCreator = ({ onSave, onCancel, editingSlide = null }) => {
+  const [slideData, setSlideData] = useState({
+    root: '',
+    type: 'root',
+    origin: 'Greek',
+    meaning: '',
+    definition: '',
+    examples: ['', '', ''],
+    difficulty: 'beginner',
+    category: '',
+    image: null
+  });
+
+  useEffect(() => {
+    if (editingSlide) {
+      setSlideData({
+        ...editingSlide,
+        examples: editingSlide.examples || ['', '', '']
+      });
+    }
+  }, [editingSlide]);
+
+  const handleImageUpload = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        setSlideData(prev => ({
+          ...prev,
+          image: e.target.result
+        }));
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleExampleChange = (index, value) => {
+    const newExamples = [...slideData.examples];
+    newExamples[index] = value;
+    setSlideData(prev => ({
+      ...prev,
+      examples: newExamples
+    }));
+  };
+
+  const handleSave = () => {
+    const cleanedData = {
+      ...slideData,
+      examples: slideData.examples.filter(ex => ex.trim() !== ''),
+      points: slideData.difficulty === 'beginner' ? 10 : 
+              slideData.difficulty === 'intermediate' ? 15 : 20
+    };
+    onSave(cleanedData);
+  };
+
+  return (
+    <div className="bg-white rounded-2xl shadow-xl p-8 max-w-4xl mx-auto">
+      <h2 className="text-2xl font-bold text-navy-800 mb-6">
+        {editingSlide ? 'Edit Slide' : 'Create New Slide'}
+      </h2>
+      
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-navy-700 mb-2">
+              Root/Affix/Suffix
+            </label>
+            <input
+              type="text"
+              value={slideData.root}
+              onChange={(e) => setSlideData(prev => ({...prev, root: e.target.value}))}
+              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gold-500"
+              placeholder="e.g., graph, -ology, pre-"
+            />
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-navy-700 mb-2">Type</label>
+              <select
+                value={slideData.type}
+                onChange={(e) => setSlideData(prev => ({...prev, type: e.target.value}))}
+                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gold-500"
+              >
+                <option value="prefix">Prefix</option>
+                <option value="root">Root</option>
+                <option value="suffix">Suffix</option>
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-navy-700 mb-2">Origin</label>
+              <select
+                value={slideData.origin}
+                onChange={(e) => setSlideData(prev => ({...prev, origin: e.target.value}))}
+                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gold-500"
+              >
+                <option value="Greek">Greek</option>
+                <option value="Latin">Latin</option>
+              </select>
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-navy-700 mb-2">Meaning</label>
+            <input
+              type="text"
+              value={slideData.meaning}
+              onChange={(e) => setSlideData(prev => ({...prev, meaning: e.target.value}))}
+              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gold-500"
+              placeholder="e.g., write, draw"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-navy-700 mb-2">Definition</label>
+            <textarea
+              value={slideData.definition}
+              onChange={(e) => setSlideData(prev => ({...prev, definition: e.target.value}))}
+              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gold-500"
+              rows="3"
+              placeholder="A detailed explanation of the meaning..."
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-navy-700 mb-2">Examples</label>
+            {slideData.examples.map((example, index) => (
+              <input
+                key={index}
+                type="text"
+                value={example}
+                onChange={(e) => handleExampleChange(index, e.target.value)}
+                className="w-full p-2 mb-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gold-500"
+                placeholder={`Example ${index + 1}`}
+              />
+            ))}
+          </div>
+        </div>
+
+        <div className="space-y-4">
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-navy-700 mb-2">Difficulty</label>
+              <select
+                value={slideData.difficulty}
+                onChange={(e) => setSlideData(prev => ({...prev, difficulty: e.target.value}))}
+                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gold-500"
+              >
+                <option value="beginner">Beginner (10 pts)</option>
+                <option value="intermediate">Intermediate (15 pts)</option>
+                <option value="advanced">Advanced (20 pts)</option>
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-navy-700 mb-2">Category</label>
+              <input
+                type="text"
+                value={slideData.category}
+                onChange={(e) => setSlideData(prev => ({...prev, category: e.target.value}))}
+                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gold-500"
+                placeholder="e.g., communication"
+              />
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-navy-700 mb-2">Upload Image</label>
+            <input
+              type="file"
+              accept="image/*"
+              onChange={handleImageUpload}
+              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gold-500"
+            />
+            {slideData.image && (
+              <div className="mt-2">
+                <img 
+                  src={slideData.image} 
+                  alt="Preview" 
+                  className="w-32 h-32 object-cover rounded-lg border"
+                />
+              </div>
+            )}
+          </div>
+
+          <div className="bg-gray-50 rounded-lg p-4">
+            <h3 className="font-semibold text-navy-700 mb-2">Preview</h3>
+            <div className="text-4xl font-bold text-navy-800 mb-2">{slideData.root || 'Your Root'}</div>
+            <div className="text-sm text-gray-600 mb-1">
+              {slideData.type} • {slideData.origin} • {slideData.difficulty}
+            </div>
+            <div className="text-lg text-navy-700">"{slideData.meaning || 'meaning'}"</div>
+          </div>
+        </div>
+      </div>
+
+      <div className="flex justify-end space-x-4 mt-6">
+        <button
+          onClick={onCancel}
+          className="px-6 py-3 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors"
+        >
+          Cancel
+        </button>
+        <button
+          onClick={handleSave}
+          className="px-6 py-3 bg-gradient-to-r from-gold-500 to-gold-600 text-navy-900 rounded-lg font-semibold hover:from-gold-600 hover:to-gold-700 transition-all"
+        >
+          {editingSlide ? 'Update Slide' : 'Create Slide'}
+        </button>
+      </div>
+    </div>
+  );
+};
+
 function App() {
   const [currentView, setCurrentView] = useState('welcome');
   const [user, setUser] = useState(null);
   const [words, setWords] = useState([]);
+  const [studySets, setStudySets] = useState({ all: [] });
+  const [selectedStudySet, setSelectedStudySet] = useState('all');
   const [currentWordIndex, setCurrentWordIndex] = useState(0);
   const [showAnswer, setShowAnswer] = useState(false);
+  const [useMultipleChoice, setUseMultipleChoice] = useState(true);
   const [quizMode, setQuizMode] = useState(false);
   const [quizScore, setQuizScore] = useState(0);
   const [quizQuestion, setQuizQuestion] = useState(0);
   const [adminUsers, setAdminUsers] = useState([]);
   const [userProfile, setUserProfile] = useState(null);
   const [leaderboard, setLeaderboard] = useState([]);
+  const [showSlideCreator, setShowSlideCreator] = useState(false);
+  const [editingSlide, setEditingSlide] = useState(null);
 
   // Auth forms state
   const [loginData, setLoginData] = useState({ email: '', password: '' });
@@ -112,6 +437,7 @@ function App() {
       
       if (wordsResponse.data && profileResponse.data) {
         setWords(wordsResponse.data);
+        setStudySets({ all: wordsResponse.data });
         setUserProfile(profileResponse.data);
         setUser(profileResponse.data);
         setCurrentView('dashboard');
@@ -120,6 +446,10 @@ function App() {
       console.error('Failed to load user data:', error);
       localStorage.removeItem('token');
     }
+  };
+
+  const getCurrentWords = () => {
+    return studySets[selectedStudySet] || studySets.all || [];
   };
 
   const handleLogin = async (e) => {
@@ -132,7 +462,6 @@ function App() {
       axios.defaults.headers.common['Authorization'] = `Bearer ${access_token}`;
       setUser(user);
       
-      // Load user data
       await loadUserData();
     } catch (error) {
       alert('Login failed: ' + (error.response?.data?.detail || 'Unknown error'));
@@ -149,7 +478,6 @@ function App() {
       axios.defaults.headers.common['Authorization'] = `Bearer ${access_token}`;
       setUser(user);
       
-      // Load user data
       await loadUserData();
     } catch (error) {
       alert('Registration failed: ' + (error.response?.data?.detail || 'Unknown error'));
@@ -167,21 +495,24 @@ function App() {
 
   const nextCard = () => {
     setShowAnswer(false);
-    setCurrentWordIndex((prev) => (prev + 1) % words.length);
+    const currentWords = getCurrentWords();
+    setCurrentWordIndex((prev) => (prev + 1) % currentWords.length);
   };
 
   const prevCard = () => {
     setShowAnswer(false);
-    setCurrentWordIndex((prev) => (prev - 1 + words.length) % words.length);
+    const currentWords = getCurrentWords();
+    setCurrentWordIndex((prev) => (prev - 1 + currentWords.length) % currentWords.length);
   };
 
   const recordStudySession = async (correct) => {
-    if (!user || !words[currentWordIndex]) return;
+    const currentWords = getCurrentWords();
+    if (!user || !currentWords[currentWordIndex]) return;
     
     try {
       const response = await axios.post(`${API_BASE_URL}/api/study-session`, {
         user_id: user.id,
-        word_id: words[currentWordIndex].id,
+        word_id: currentWords[currentWordIndex].id,
         correct: correct,
         timestamp: new Date().toISOString()
       });
@@ -201,19 +532,20 @@ function App() {
     setQuizMode(true);
     setQuizScore(0);
     setQuizQuestion(0);
-    setCurrentWordIndex(Math.floor(Math.random() * words.length));
+    const currentWords = getCurrentWords();
+    setCurrentWordIndex(Math.floor(Math.random() * currentWords.length));
     setShowAnswer(false);
   };
 
   const answerQuiz = (correct) => {
     if (correct) setQuizScore(prev => prev + 1);
     
-    if (quizQuestion < 9) { // 10 questions total
+    if (quizQuestion < 9) {
       setQuizQuestion(prev => prev + 1);
-      setCurrentWordIndex(Math.floor(Math.random() * words.length));
+      const currentWords = getCurrentWords();
+      setCurrentWordIndex(Math.floor(Math.random() * currentWords.length));
       setShowAnswer(false);
     } else {
-      // Quiz finished
       recordQuizResult();
       setQuizMode(false);
     }
@@ -263,17 +595,51 @@ function App() {
     }
   };
 
+  const handleCreateSlide = async (slideData) => {
+    try {
+      const response = await axios.post(`${API_BASE_URL}/api/admin/create-word`, slideData);
+      if (response.status === 200) {
+        await loadUserData(); // Refresh words
+        setShowSlideCreator(false);
+        alert('Slide created successfully!');
+      }
+    } catch (error) {
+      alert('Failed to create slide: ' + (error.response?.data?.detail || 'Unknown error'));
+    }
+  };
+
+  const handleEditSlide = async (slideData) => {
+    try {
+      const response = await axios.put(`${API_BASE_URL}/api/admin/update-word/${editingSlide.id}`, slideData);
+      if (response.status === 200) {
+        await loadUserData(); // Refresh words
+        setShowSlideCreator(false);
+        setEditingSlide(null);
+        alert('Slide updated successfully!');
+      }
+    } catch (error) {
+      alert('Failed to update slide: ' + (error.response?.data?.detail || 'Unknown error'));
+    }
+  };
+
+  const createCustomStudySet = (setName, wordIds) => {
+    const selectedWords = words.filter(word => wordIds.includes(word.id));
+    setStudySets(prev => ({
+      ...prev,
+      [setName]: selectedWords
+    }));
+  };
+
   // Welcome Page
   if (currentView === 'welcome') {
     return (
       <div className="min-h-screen bg-gradient-to-br from-navy-900 via-navy-800 to-navy-700 flex items-center justify-center p-4">
         <div className="bg-white rounded-3xl shadow-2xl p-12 w-full max-w-md relative overflow-hidden">
-          {/* Background decoration */}
           <div className="absolute top-0 right-0 w-32 h-32 bg-gold-100 rounded-full -mr-16 -mt-16"></div>
           <div className="absolute bottom-0 left-0 w-24 h-24 bg-gold-50 rounded-full -ml-12 -mb-12"></div>
           
           <div className="relative z-10">
-            <EmpowerULogo />
+            <AcademyLogo />
             
             <div className="space-y-4">
               <button
@@ -293,7 +659,7 @@ function App() {
             
             <div className="mt-8 text-center">
               <JamaalCharacter 
-                message="Ready to become a Word Weaver? Let's unlock the power of language!" 
+                message="Ready to master Greek and Latin? Let's unlock the power of language!" 
                 size="medium"
               />
             </div>
@@ -315,7 +681,7 @@ function App() {
             >
               ← Back
             </button>
-            <EmpowerULogo />
+            <AcademyLogo />
           </div>
           
           <div className="flex mb-6 bg-gray-100 rounded-lg p-1">
@@ -402,14 +768,14 @@ function App() {
                 type="submit"
                 className="w-full bg-gradient-to-r from-gold-500 to-gold-600 text-navy-900 py-3 rounded-lg font-semibold hover:from-gold-600 hover:to-gold-700 transition-all"
               >
-                Join the Word Weavers
+                Join the Academy
               </button>
             </form>
           )}
           
           <div className="mt-6 text-center">
             <JamaalCharacter 
-              message={currentView === 'student-login' ? "Welcome back, Word Weaver!" : "Ready to start your journey?"} 
+              message={currentView === 'student-login' ? "Welcome back to the Academy!" : "Ready to start your journey?"} 
               size="small"
             />
           </div>
@@ -430,7 +796,7 @@ function App() {
             >
               ← Back
             </button>
-            <EmpowerULogo />
+            <AcademyLogo />
             <h3 className="text-xl font-semibold text-navy-700 mt-4">Teacher Access</h3>
           </div>
           
@@ -478,9 +844,25 @@ function App() {
       <div className="min-h-screen bg-gradient-to-br from-navy-900 to-navy-700 flex items-center justify-center">
         <div className="text-center text-white">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gold-500 mx-auto mb-4"></div>
-          <p className="text-lg">Loading your Word Weaver journey...</p>
+          <p className="text-lg">Loading your Academy journey...</p>
           <JamaalCharacter message="Getting everything ready for you!" size="small" />
         </div>
+      </div>
+    );
+  }
+
+  // Slide Creator View
+  if (showSlideCreator) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-navy-900 via-navy-800 to-navy-700 p-6">
+        <SlideCreator 
+          onSave={editingSlide ? handleEditSlide : handleCreateSlide}
+          onCancel={() => {
+            setShowSlideCreator(false);
+            setEditingSlide(null);
+          }}
+          editingSlide={editingSlide}
+        />
       </div>
     );
   }
@@ -501,9 +883,9 @@ function App() {
                   <span className="font-black text-sm">U</span>
                 </div>
               </div>
-              <div className="text-navy-700">
-                <span className="font-semibold">Welcome back, {userProfile?.first_name}!</span>
-                <div className="text-sm text-gray-600">Level {userProfile?.level} Word Weaver</div>
+              <div>
+                <div className="text-lg font-bold text-navy-700">Greek and Latin Academy</div>
+                <div className="text-sm text-gray-600">Welcome, {userProfile?.first_name}! • Level {userProfile?.level}</div>
               </div>
             </div>
             
@@ -551,7 +933,7 @@ function App() {
             <div className="lg:col-span-2 space-y-6">
               {/* Progress Overview */}
               <div className="bg-white rounded-2xl shadow-xl p-6">
-                <h2 className="text-2xl font-bold text-navy-800 mb-6">Your Word Weaver Journey</h2>
+                <h2 className="text-2xl font-bold text-navy-800 mb-6">Your Academy Journey</h2>
                 
                 <div className="grid grid-cols-2 gap-4 mb-6">
                   <div className="bg-gradient-to-br from-gold-100 to-gold-200 rounded-xl p-4 text-center">
@@ -609,7 +991,7 @@ function App() {
             <div className="space-y-6">
               <div className="bg-white rounded-2xl shadow-xl p-6 text-center">
                 <JamaalCharacter 
-                  message="Keep up the great work! You're becoming a true Word Weaver!" 
+                  message="Keep up the great work! You're mastering the building blocks of language!" 
                   size="large"
                 />
               </div>
@@ -638,9 +1020,10 @@ function App() {
     );
   }
 
-  // Study/Flashcards View - This continues your existing flashcard logic but with new styling
+  // Study/Flashcards View
   if (currentView === 'study') {
-    const currentWord = words[currentWordIndex];
+    const currentWords = getCurrentWords();
+    const currentWord = currentWords[currentWordIndex];
     
     return (
       <div className="min-h-screen bg-gradient-to-br from-navy-900 via-navy-800 to-navy-700">
@@ -656,7 +1039,7 @@ function App() {
             </button>
             <div className="text-center">
               <div className="text-lg font-semibold text-navy-800">
-                Card {currentWordIndex + 1} of {words.length}
+                Card {currentWordIndex + 1} of {currentWords.length}
               </div>
               {quizMode && (
                 <div className="text-sm text-orange-600 font-medium">
@@ -665,14 +1048,27 @@ function App() {
               )}
             </div>
             <div className="flex space-x-2">
-              {!quizMode ? (
-                <button
-                  onClick={startQuiz}
-                  className="px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors font-medium"
-                >
-                  🧠 Start Quiz
-                </button>
-              ) : (
+              {!quizMode && (
+                <>
+                  <button
+                    onClick={() => setUseMultipleChoice(!useMultipleChoice)}
+                    className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                      useMultipleChoice 
+                        ? 'bg-green-500 text-white hover:bg-green-600' 
+                        : 'bg-gray-500 text-white hover:bg-gray-600'
+                    }`}
+                  >
+                    {useMultipleChoice ? '📝 Multiple Choice' : '🎯 Self-Assessment'}
+                  </button>
+                  <button
+                    onClick={startQuiz}
+                    className="px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors font-medium"
+                  >
+                    🧠 Start Quiz
+                  </button>
+                </>
+              )}
+              {quizMode && (
                 <button
                   onClick={() => setQuizMode(false)}
                   className="px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors"
@@ -685,6 +1081,13 @@ function App() {
         </header>
 
         <div className="max-w-4xl mx-auto p-6">
+          {/* Study Set Selector */}
+          <StudySetSelector 
+            studySets={studySets}
+            selectedSet={selectedStudySet}
+            onSetChange={setSelectedStudySet}
+          />
+
           {/* Flashcard */}
           <div className="bg-white rounded-3xl shadow-2xl p-12 mb-6 min-h-96 flex flex-col justify-center items-center text-center">
             <div className="mb-6">
@@ -702,39 +1105,65 @@ function App() {
             </div>
             
             {showAnswer ? (
-              <div className="space-y-6 animate-fadeIn">
-                <div className="text-3xl text-navy-700 font-semibold">
-                  "{currentWord?.meaning || 'No meaning available'}"
-                </div>
-                <div className="text-xl text-gray-600 max-w-2xl">
-                  {currentWord?.definition || 'No definition available'}
-                </div>
-                <div className="mt-8">
-                  <h4 className="text-lg font-semibold text-navy-700 mb-3">Examples:</h4>
-                  <div className="flex flex-wrap justify-center gap-3">
-                    {(currentWord?.examples || []).map((example, index) => (
-                      <span key={index} className="bg-gold-100 text-navy-700 px-4 py-2 rounded-full font-medium">
-                        {example}
-                      </span>
-                    ))}
+              useMultipleChoice && !quizMode ? (
+                <MultipleChoice 
+                  currentWord={currentWord}
+                  onAnswer={(correct) => {
+                    recordStudySession(correct);
+                    nextCard();
+                  }}
+                />
+              ) : (
+                <div className="space-y-6 animate-fadeIn">
+                  <div className="text-3xl text-navy-700 font-semibold">
+                    "{currentWord?.meaning || 'No meaning available'}"
                   </div>
+                  <div className="text-xl text-gray-600 max-w-2xl">
+                    {currentWord?.definition || 'No definition available'}
+                  </div>
+                  <div className="mt-8">
+                    <h4 className="text-lg font-semibold text-navy-700 mb-3">Examples:</h4>
+                    <div className="flex flex-wrap justify-center gap-3">
+                      {(currentWord?.examples || []).map((example, index) => (
+                        <span key={index} className="bg-gold-100 text-navy-700 px-4 py-2 rounded-full font-medium">
+                          {example}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                  <div className="text-lg font-semibold text-gold-600">
+                    +{currentWord?.points || 0} points available
+                  </div>
+                  {currentWord?.image && (
+                    <div className="mt-4">
+                      <img 
+                        src={currentWord.image} 
+                        alt="Visual aid" 
+                        className="max-w-xs mx-auto rounded-lg shadow-lg"
+                      />
+                    </div>
+                  )}
                 </div>
-                <div className="text-lg font-semibold text-gold-600">
-                  +{currentWord?.points || 0} points available
-                </div>
-              </div>
+              )
             ) : (
-              <div className="space-y-6">
-                <div className="text-xl text-gray-500 mb-8">
-                  {quizMode ? "What does this mean?" : "Click 'Show Answer' to reveal the meaning"}
+              quizMode && useMultipleChoice ? (
+                <MultipleChoice 
+                  currentWord={currentWord}
+                  onAnswer={answerQuiz}
+                />
+              ) : (
+                <div className="space-y-6">
+                  <div className="text-xl text-gray-500 mb-8">
+                    {quizMode ? "What does this mean?" : "Click 'Show Answer' to reveal the meaning"}
+                  </div>
+                  <button
+                    onClick={() => setShowAnswer(true)}
+                    className="px-12 py-4 bg-gradient-to-r from-gold-500 to-gold-600 text-navy-900 rounded-full font-semibold hover:from-gold-600 hover:to-gold-700 transition-all transform hover:scale-105 shadow-lg text-lg"
+                  >
+                    👁️ Show Answer
+                  </button>
                 </div>
-                <button
-                  onClick={() => setShowAnswer(true)}
-                  className="px-12 py-4 bg-gradient-to-r from-gold-500 to-gold-600 text-navy-900 rounded-full font-semibold hover:from-gold-600 hover:to-gold-700 transition-all transform hover:scale-105 shadow-lg text-lg"
-                >
-                  👁️ Show Answer
-                </button>
-              </div>
+              )
             )}
           </div>
 
@@ -748,7 +1177,7 @@ function App() {
               <span>Previous</span>
             </button>
 
-            {showAnswer && (
+            {showAnswer && !useMultipleChoice && (
               <div className="flex space-x-4">
                 {quizMode ? (
                   <>
@@ -796,7 +1225,7 @@ function App() {
           {/* Jamaal encouragement */}
           <div className="mt-8 text-center">
             <JamaalCharacter 
-              message={showAnswer ? "Great job! Keep weaving those words!" : "You've got this, Word Weaver!"} 
+              message={showAnswer ? "Excellent work! Keep building your vocabulary!" : "You've got this! Think about the word parts."} 
               size="medium"
             />
           </div>
@@ -818,7 +1247,7 @@ function App() {
               <span>←</span>
               <span>Back to Dashboard</span>
             </button>
-            <h1 className="text-2xl font-bold text-navy-800">🏆 Word Weaver Leaderboard</h1>
+            <h1 className="text-2xl font-bold text-navy-800">🏆 Academy Leaderboard</h1>
             <div></div>
           </div>
         </header>
@@ -863,7 +1292,7 @@ function App() {
     );
   }
 
-  // Admin View (keep existing admin functionality with new styling)
+  // Admin View
   if (currentView === 'admin' && user?.is_teacher) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-navy-900 via-navy-800 to-navy-700">
@@ -877,7 +1306,14 @@ function App() {
               <span>Back to Dashboard</span>
             </button>
             <h1 className="text-2xl font-bold text-navy-800">👩‍🏫 Teacher Dashboard</h1>
-            <div></div>
+            <div className="flex space-x-2">
+              <button
+                onClick={() => setShowSlideCreator(true)}
+                className="px-4 py-2 bg-gradient-to-r from-gold-500 to-gold-600 text-navy-900 rounded-lg font-medium hover:from-gold-600 hover:to-gold-700 transition-all"
+              >
+                ➕ Create Slide
+              </button>
+            </div>
           </div>
         </header>
 
@@ -923,8 +1359,8 @@ function App() {
               </div>
               
               <div>
-                <h3 className="text-xl font-semibold text-navy-700 mb-6">📈 Quick Stats</h3>
-                <div className="grid grid-cols-2 gap-4">
+                <h3 className="text-xl font-semibold text-navy-700 mb-6">📈 Content Management</h3>
+                <div className="grid grid-cols-2 gap-4 mb-6">
                   <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl p-6 text-center">
                     <div className="text-3xl font-bold text-blue-600">{adminUsers.filter(u => !u.is_teacher).length}</div>
                     <div className="text-sm text-blue-600 font-medium">Students</div>
@@ -933,25 +1369,35 @@ function App() {
                     <div className="text-3xl font-bold text-green-600">{words.length}</div>
                     <div className="text-sm text-green-600 font-medium">Word Cards</div>
                   </div>
-                  <div className="bg-gradient-to-br from-gold-50 to-gold-100 rounded-xl p-6 text-center">
-                    <div className="text-3xl font-bold text-gold-600">{adminUsers.filter(u => u.is_teacher).length}</div>
-                    <div className="text-sm text-gold-600 font-medium">Teachers</div>
-                  </div>
-                  <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-xl p-6 text-center">
-                    <div className="text-3xl font-bold text-purple-600">
-                      {adminUsers.filter(u => !u.is_teacher && (u.total_points || 0) > 0).length}
-                    </div>
-                    <div className="text-sm text-purple-600 font-medium">Active Learners</div>
+                </div>
+                
+                <div className="space-y-3">
+                  <h4 className="font-semibold text-navy-700">Recent Slides</h4>
+                  <div className="max-h-40 overflow-y-auto space-y-2">
+                    {words.slice(0, 5).map((word, index) => (
+                      <div key={word.id} className="flex justify-between items-center p-2 bg-gray-50 rounded">
+                        <span className="text-sm font-medium">{word.root}</span>
+                        <button
+                          onClick={() => {
+                            setEditingSlide(word);
+                            setShowSlideCreator(true);
+                          }}
+                          className="text-xs text-blue-600 hover:text-blue-800"
+                        >
+                          Edit
+                        </button>
+                      </div>
+                    ))}
                   </div>
                 </div>
                 
                 <div className="mt-6 p-4 bg-navy-50 rounded-xl">
                   <h4 className="font-semibold text-navy-700 mb-2">💡 Teaching Tips</h4>
                   <ul className="text-sm text-navy-600 space-y-1">
-                    <li>• Encourage daily practice for better retention</li>
+                    <li>• Create custom study sets for targeted learning</li>
+                    <li>• Use multiple-choice mode for guided practice</li>
+                    <li>• Upload visual aids to enhance comprehension</li>
                     <li>• Monitor student progress through individual sessions</li>
-                    <li>• Celebrate badge achievements to motivate learners</li>
-                    <li>• Use quiz results to identify challenging concepts</li>
                   </ul>
                 </div>
               </div>
@@ -960,7 +1406,7 @@ function App() {
             <div className="mt-8 p-6 bg-gradient-to-r from-gold-50 to-navy-50 rounded-xl">
               <div className="text-center">
                 <JamaalCharacter 
-                  message="Teachers are the real Word Weaver heroes! Thanks for empowering students!" 
+                  message="Teachers are the real language heroes! Thanks for empowering students to master Greek and Latin!" 
                   size="medium"
                 />
               </div>
