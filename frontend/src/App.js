@@ -1201,6 +1201,150 @@ function App() {
     );
   }
 
+  // Learning View (New format matching uploaded image)
+  if (currentView === 'learning') {
+    const currentWords = getCurrentWords();
+    const currentWord = currentWords[currentWordIndex];
+    
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-navy-900 via-navy-800 to-navy-700">
+        {/* Header */}
+        <header className="bg-white shadow-lg p-4">
+          <div className="max-w-6xl mx-auto flex justify-between items-center">
+            <button
+              onClick={() => setCurrentView('dashboard')}
+              className="flex items-center space-x-2 text-navy-600 hover:text-navy-800"
+            >
+              <span>←</span>
+              <span>Back to Dashboard</span>
+            </button>
+            <div className="text-center">
+              <div className="text-lg font-semibold text-navy-800">
+                🧠 Learning - Card {currentWordIndex + 1} of {currentWords.length}
+              </div>
+            </div>
+            <div className="flex space-x-2">
+              <button
+                onClick={() => setCurrentView('study')}
+                className="px-4 py-2 bg-gold-500 text-navy-900 rounded-lg hover:bg-gold-600 transition-colors font-medium"
+              >
+                📚 Practice Mode
+              </button>
+            </div>
+          </div>
+        </header>
+
+        <div className="max-w-4xl mx-auto p-6">
+          {/* Study Set Selector */}
+          <StudySetSelector 
+            studySets={studySets}
+            selectedSet={selectedStudySet}
+            onSetChange={setSelectedStudySet}
+          />
+
+          {/* Learning Card - Matching uploaded format */}
+          <div className="bg-white rounded-3xl shadow-2xl p-12 mb-6 min-h-96 flex flex-col justify-center items-center text-center">
+            {/* Type Badge */}
+            <div className="mb-8">
+              <span className={`px-6 py-3 rounded-full text-sm font-bold uppercase tracking-wider ${
+                currentWord?.type === 'prefix' ? 'bg-blue-100 text-blue-700 border border-blue-300' :
+                currentWord?.type === 'suffix' ? 'bg-green-100 text-green-700 border border-green-300' :
+                'bg-purple-100 text-purple-700 border border-purple-300'
+              }`}>
+                {currentWord?.type || 'type'} • {currentWord?.origin || 'origin'} • {currentWord?.difficulty || 'difficulty'}
+              </span>
+            </div>
+            
+            {/* Main Word */}
+            <div className="text-8xl font-bold text-gray-800 mb-6">
+              {currentWord?.root || 'Loading...'}
+            </div>
+            
+            {/* Meaning in quotes */}
+            <div className="text-3xl text-gray-700 font-medium mb-6">
+              "{currentWord?.meaning || 'No meaning available'}"
+            </div>
+            
+            {/* Definition */}
+            <div className="text-xl text-gray-600 max-w-2xl mb-8">
+              {currentWord?.definition || 'No definition available'}
+            </div>
+            
+            {/* Examples Section */}
+            <div className="w-full max-w-2xl">
+              <h4 className="text-xl font-semibold text-gray-700 mb-4">Examples:</h4>
+              <div className="flex flex-wrap justify-center gap-4">
+                {(currentWord?.examples || []).map((example, index) => (
+                  <span key={index} className="bg-yellow-200 text-gray-800 px-6 py-3 rounded-full text-lg font-medium border border-yellow-300">
+                    {example}
+                  </span>
+                ))}
+              </div>
+            </div>
+            
+            {/* Points Display */}
+            <div className="mt-8 text-lg font-semibold text-purple-600">
+              +{currentWord?.points || 0} points available
+            </div>
+            
+            {/* Image if available */}
+            {currentWord?.image && (
+              <div className="mt-6">
+                <img 
+                  src={currentWord.image} 
+                  alt="Visual aid" 
+                  className="max-w-xs mx-auto rounded-lg shadow-lg"
+                />
+              </div>
+            )}
+          </div>
+
+          {/* Navigation Controls */}
+          <div className="flex justify-between items-center">
+            <button
+              onClick={prevCard}
+              className="flex items-center space-x-2 px-8 py-4 bg-white text-navy-700 rounded-xl shadow-lg hover:shadow-xl transition-all hover:scale-105 font-medium"
+            >
+              <span>⬅️</span>
+              <span>Previous</span>
+            </button>
+
+            <div className="flex space-x-4">
+              <button
+                onClick={() => { recordStudySession(true); nextCard(); }}
+                className="px-8 py-4 bg-green-500 text-white rounded-xl hover:bg-green-600 transition-colors font-medium"
+              >
+                ✅ Got It!
+              </button>
+              <button
+                onClick={() => { recordStudySession(false); nextCard(); }}
+                className="px-8 py-4 bg-orange-500 text-white rounded-xl hover:bg-orange-600 transition-colors font-medium"
+              >
+                🤔 Need Practice
+              </button>
+            </div>
+
+            <button
+              onClick={nextCard}
+              className="flex items-center space-x-2 px-8 py-4 bg-white text-navy-700 rounded-xl shadow-lg hover:shadow-xl transition-all hover:scale-105 font-medium"
+            >
+              <span>Next</span>
+              <span>➡️</span>
+            </button>
+          </div>
+
+          {/* Jamaal encouragement */}
+          <div className="mt-8 text-center">
+            <JamaalCharacter 
+              message="You're learning the building blocks of language! Every root, prefix, and suffix you master unlocks dozens of new words!" 
+              size="medium"
+            />
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   // Study/Flashcards View
   if (currentView === 'study') {
     const currentWords = getCurrentWords();
