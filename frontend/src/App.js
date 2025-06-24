@@ -997,6 +997,19 @@ function App() {
     );
   }
 
+  // Study Set Creator View
+  if (showStudySetCreator) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-navy-900 via-navy-800 to-navy-700 p-6">
+        <StudySetCreator 
+          words={words}
+          onSave={handleCreateStudySet}
+          onCancel={() => setShowStudySetCreator(false)}
+        />
+      </div>
+    );
+  }
+
   // Slide Creator View
   if (showSlideCreator) {
     return (
