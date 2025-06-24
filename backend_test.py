@@ -146,9 +146,89 @@ class GreekLatinAPITester:
         """Get all users (admin only)"""
         return self.run_test("Get Admin Users", "GET", "admin/users", 200, token=self.teacher_token)
 
-    def get_user_progress(self):
-        """Get user progress (admin only)"""
-        return self.run_test("Get User Progress", "GET", f"admin/progress/{self.student_id}", 200, token=self.teacher_token)
+    def verify_word_content(self, words):
+        """Verify the content of the word cards"""
+        print("\n🔍 Verifying Word Content...")
+        
+        # Check if we have 30 word elements
+        if len(words) != 30:
+            print(f"❌ Expected 30 word elements, got {len(words)}")
+            return False
+            
+        # Check content types
+        content_types = {}
+        origins = {}
+        difficulties = {}
+        
+        for word in words:
+            # Check required fields
+            required_fields = ['id', 'type', 'root', 'origin', 'meaning', 'examples', 
+                              'definition', 'difficulty', 'points', 'category']
+            
+            for field in required_fields:
+                if field not in word:
+                    print(f"❌ Missing required field '{field}' in word: {word['root']}")
+                    return False
+            
+            # Count content types
+            content_types[word['type']] = content_types.get(word['type'], 0) + 1
+            origins[word['origin']] = origins.get(word['origin'], 0) + 1
+            difficulties[word['difficulty']] = difficulties.get(word['difficulty'], 0) + 1
+            
+            # Check points match difficulty
+            expected_points = 10 if word['difficulty'] == 'beginner' else (15 if word['difficulty'] == 'intermediate' else 20)
+            if word['points'] != expected_points:
+                print(f"❌ Points don't match difficulty for {word['root']}: expected {expected_points}, got {word['points']}")
+                return False
+                
+            # Check examples
+            if not word['examples'] or len(word['examples']) < 1:
+                print(f"❌ No examples for {word['root']}")
+                return False
+        
+        # Store verification results
+        self.content_verification_results = {
+            'total_words': len(words),
+            'content_types': content_types,
+            'origins': origins,
+            'difficulties': difficulties
+        }
+        
+        print("✅ Word content verification passed")
+        print(f"📊 Content breakdown:")
+        print(f"   - Total words: {len(words)}")
+        print(f"   - Types: {content_types}")
+        print(f"   - Origins: {origins}")
+        print(f"   - Difficulties: {difficulties}")
+        
+        return True
+        
+    def verify_educational_value(self, words):
+        """Verify the educational value of the content"""
+        print("\n🔍 Verifying Educational Value...")
+        
+        # Check for specific important roots
+        important_roots = ['graph', 'port', '-ology']
+        found_roots = {}
+        
+        for root in important_roots:
+            for word in words:
+                if word['root'] == root:
+                    found_roots[root] = word
+                    break
+        
+        # Check if all important roots were found
+        for root in important_roots:
+            if root not in found_roots:
+                print(f"❌ Important root '{root}' not found")
+            else:
+                print(f"✅ Found important root '{root}': {found_roots[root]['meaning']}")
+                
+        # Check if examples are relevant
+        for root, word in found_roots.items():
+            print(f"   - Examples for '{root}': {', '.join(word['examples'])}")
+            
+        return len(found_roots) == len(important_roots)
 
     def run_all_tests(self):
         """Run all API tests"""
