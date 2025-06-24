@@ -818,7 +818,7 @@ function App() {
           
           <div className="mt-6 p-4 bg-gray-50 rounded-lg">
             <p className="text-sm text-gray-600 text-center">
-              Teacher accounts are invitation-only. Contact your administrator for access.
+              Administrator accounts are invitation-only. Contact your system administrator for access.
             </p>
             <p className="text-xs text-gray-500 text-center mt-2">
               Demo: admin@empoweru.com / EmpowerU2024!
