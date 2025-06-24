@@ -770,14 +770,46 @@ function App() {
   const handleEditSlide = async (slideData) => {
     try {
       const response = await axios.put(`${API_BASE_URL}/api/admin/update-word/${editingSlide.id}`, slideData);
-      if (response.status === 200) {
-        await loadUserData(); // Refresh words
+      if (response.status === 200 || response.status === 201) {
+        // Refresh words data
+        const wordsResponse = await axios.get(`${API_BASE_URL}/api/words`);
+        setWords(wordsResponse.data);
+        setStudySets(prev => ({ 
+          ...prev, 
+          all: wordsResponse.data 
+        }));
+        
         setShowSlideCreator(false);
         setEditingSlide(null);
-        alert('Slide updated successfully!');
+        alert(`Slide "${slideData.root}" updated successfully!`);
       }
     } catch (error) {
+      console.error('Slide update error:', error);
       alert('Failed to update slide: ' + (error.response?.data?.detail || 'Unknown error'));
+    }
+  };
+
+  const handleDeleteSlide = async (slideId, slideRoot) => {
+    if (!window.confirm(`Are you sure you want to delete the slide "${slideRoot}"? This action cannot be undone.`)) {
+      return;
+    }
+
+    try {
+      const response = await axios.delete(`${API_BASE_URL}/api/admin/delete-word/${slideId}`);
+      if (response.status === 200 || response.status === 204) {
+        // Refresh words data
+        const wordsResponse = await axios.get(`${API_BASE_URL}/api/words`);
+        setWords(wordsResponse.data);
+        setStudySets(prev => ({ 
+          ...prev, 
+          all: wordsResponse.data 
+        }));
+        
+        alert(`Slide "${slideRoot}" deleted successfully!`);
+      }
+    } catch (error) {
+      console.error('Slide deletion error:', error);
+      alert('Failed to delete slide: ' + (error.response?.data?.detail || 'Unknown error'));
     }
   };
 
