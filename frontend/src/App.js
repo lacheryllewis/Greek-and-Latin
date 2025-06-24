@@ -1296,7 +1296,7 @@ function App() {
               <span>←</span>
               <span>Back to Dashboard</span>
             </button>
-            <h1 className="text-2xl font-bold text-navy-800">👩‍🏫 Teacher Dashboard</h1>
+            <h1 className="text-2xl font-bold text-navy-800">👩‍💼 Administrator Dashboard</h1>
             <div className="flex space-x-2">
               <button
                 onClick={() => setShowSlideCreator(true)}
