@@ -904,5 +904,115 @@ async def create_study_set(study_set_data: dict, current_user: dict = Depends(ge
     
     await db.study_sets.insert_one(study_set_doc)
     return {"status": "created", "id": study_set_id}
+
+@app.get("/api/admin/backups")
+async def list_backups(current_user: dict = Depends(get_current_user)):
+    if not current_user.get("is_teacher"):
+        raise HTTPException(status_code=403, detail="Admin access required")
+    
+    # Get all backup collections
+    collections = await db.list_collection_names()
+    backup_collections = [col for col in collections if col.startswith("words_backup_")]
+    
+    backups = []
+    for backup_col in backup_collections:
+        count = await db[backup_col].count_documents({})
+        timestamp_str = backup_col.replace("words_backup_", "")
+        
+        # Parse timestamp for readable format
+        try:
+            timestamp = datetime.strptime(timestamp_str, "%Y%m%d_%H%M%S")
+            readable_time = timestamp.strftime("%Y-%m-%d %H:%M:%S")
+        except:
+            readable_time = timestamp_str
+        
+        backups.append({
+            "collection_name": backup_col,
+            "timestamp": timestamp_str,
+            "readable_time": readable_time,
+            "word_count": count
+        })
+    
+    # Sort by timestamp (newest first)
+    backups.sort(key=lambda x: x["timestamp"], reverse=True)
+    return backups
+
+@app.post("/api/admin/create-backup")
+async def create_manual_backup(current_user: dict = Depends(get_current_user)):
+    if not current_user.get("is_teacher"):
+        raise HTTPException(status_code=403, detail="Admin access required")
+    
+    # Get current words
+    existing_words = []
+    async for word in db.words.find({}):
+        word.pop('_id', None)
+        existing_words.append(word)
+    
+    if not existing_words:
+        raise HTTPException(status_code=400, detail="No words to backup")
+    
+    # Create backup with timestamp
+    backup_timestamp = datetime.utcnow().strftime("%Y%m%d_%H%M%S")
+    backup_collection = f"words_backup_{backup_timestamp}"
+    await db[backup_collection].insert_many(existing_words)
+    
+    logger.info(f"🔐 MANUAL BACKUP CREATED: {len(existing_words)} words backed up to {backup_collection}")
+    
+    return {
+        "status": "backup_created",
+        "collection_name": backup_collection,
+        "word_count": len(existing_words),
+        "timestamp": backup_timestamp
+    }
+
+@app.post("/api/admin/restore-backup")
+async def restore_backup(backup_data: dict, current_user: dict = Depends(get_current_user)):
+    if not current_user.get("is_teacher"):
+        raise HTTPException(status_code=403, detail="Admin access required")
+    
+    collection_name = backup_data.get("collection_name")
+    if not collection_name or not collection_name.startswith("words_backup_"):
+        raise HTTPException(status_code=400, detail="Invalid backup collection name")
+    
+    # Check if backup exists
+    collections = await db.list_collection_names()
+    if collection_name not in collections:
+        raise HTTPException(status_code=404, detail="Backup not found")
+    
+    # Get backup data
+    backup_words = []
+    async for word in db[collection_name].find({}):
+        word.pop('_id', None)
+        backup_words.append(word)
+    
+    if not backup_words:
+        raise HTTPException(status_code=400, detail="Backup is empty")
+    
+    # Create a backup of current state before restoring
+    current_backup_timestamp = datetime.utcnow().strftime("%Y%m%d_%H%M%S")
+    current_backup_collection = f"words_backup_before_restore_{current_backup_timestamp}"
+    
+    current_words = []
+    async for word in db.words.find({}):
+        word.pop('_id', None)
+        current_words.append(word)
+    
+    if current_words:
+        await db[current_backup_collection].insert_many(current_words)
+        logger.info(f"🔐 PRE-RESTORE BACKUP: {len(current_words)} words backed up to {current_backup_collection}")
+    
+    # Clear current words and restore from backup
+    await db.words.delete_many({})
+    await db.words.insert_many(backup_words)
+    
+    logger.info(f"✅ RESTORED: {len(backup_words)} words restored from {collection_name}")
+    
+    return {
+        "status": "restored",
+        "restored_from": collection_name,
+        "word_count": len(backup_words),
+        "pre_restore_backup": current_backup_collection
+    }
+
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=8001)
