@@ -1874,6 +1874,15 @@ function App() {
               >
                 📚 Create Study Set
               </button>
+              <button
+                onClick={() => { 
+                  setShowBackupManager(true); 
+                  loadBackups(); 
+                }}
+                className="px-4 py-2 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-lg font-medium hover:from-green-600 hover:to-green-700 transition-all"
+              >
+                🔐 Backup Manager
+              </button>
             </div>
           </div>
         </header>
