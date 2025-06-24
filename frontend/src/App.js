@@ -775,7 +775,7 @@ function App() {
     );
   }
 
-  // Teacher Login Page
+  // Administrator Login Page
   if (currentView === 'teacher-login') {
     return (
       <div className="min-h-screen bg-gradient-to-br from-navy-900 via-navy-800 to-navy-700 flex items-center justify-center p-4">
