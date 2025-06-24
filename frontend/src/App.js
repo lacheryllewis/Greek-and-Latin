@@ -1139,13 +1139,21 @@ function App() {
               {/* Quick Actions */}
               <div className="bg-white rounded-2xl shadow-xl p-6">
                 <h3 className="text-xl font-semibold text-navy-800 mb-4">Ready to Learn?</h3>
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-3 gap-4">
+                  <button
+                    onClick={() => setCurrentView('learning')}
+                    className="bg-gradient-to-br from-purple-400 to-purple-600 text-white p-6 rounded-xl hover:from-purple-500 hover:to-purple-700 transition-all transform hover:scale-105 shadow-lg"
+                  >
+                    <div className="text-2xl mb-2">🧠</div>
+                    <div className="font-semibold">Learning</div>
+                    <div className="text-sm opacity-80">Discover new words</div>
+                  </button>
                   <button
                     onClick={() => setCurrentView('study')}
                     className="bg-gradient-to-br from-gold-400 to-gold-600 text-navy-900 p-6 rounded-xl hover:from-gold-500 hover:to-gold-700 transition-all transform hover:scale-105 shadow-lg"
                   >
                     <div className="text-2xl mb-2">📚</div>
-                    <div className="font-semibold">Study Mode</div>
+                    <div className="font-semibold">Study</div>
                     <div className="text-sm opacity-80">Practice with flashcards</div>
                   </button>
                   <button
@@ -1153,7 +1161,7 @@ function App() {
                     className="bg-gradient-to-br from-navy-500 to-navy-700 text-white p-6 rounded-xl hover:from-navy-600 hover:to-navy-800 transition-all transform hover:scale-105 shadow-lg"
                   >
                     <div className="text-2xl mb-2">🧠</div>
-                    <div className="font-semibold">Quiz Mode</div>
+                    <div className="font-semibold">Quiz</div>
                     <div className="text-sm opacity-80">Test your knowledge</div>
                   </button>
                 </div>
