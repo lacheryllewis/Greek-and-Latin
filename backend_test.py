@@ -165,8 +165,45 @@ class GreekLatinAPITester:
         return self.run_test("Record Quiz Result", "POST", "quiz-result", 200, data, self.student_token)
 
     def get_admin_users(self):
-        """Get all users (admin only)"""
-        return self.run_test("Get Admin Users", "GET", "admin/users", 200, token=self.teacher_token)
+        """Get all users (admin only) and verify enhanced student profiles"""
+        success, users = self.run_test("Get Admin Users", "GET", "admin/users", 200, token=self.teacher_token)
+        
+        if success and users:
+            # Find our test student
+            test_student = None
+            for user in users:
+                if user.get('id') == self.student_id:
+                    test_student = user
+                    break
+            
+            if test_student:
+                print("\n🔍 Verifying enhanced student profile in admin dashboard...")
+                
+                # Verify enhanced profile fields
+                profile_fields = {
+                    'grade': '7th Grade',
+                    'school': 'Washington Middle School',
+                    'block_number': 'A3',
+                    'teacher': 'Ms. Johnson'
+                }
+                
+                for field, expected_value in profile_fields.items():
+                    if field in test_student and test_student[field] == expected_value:
+                        print(f"✅ Admin dashboard shows enhanced profile field '{field}' correctly")
+                    else:
+                        print(f"❌ Admin dashboard missing or incorrect enhanced profile field '{field}'. Expected: '{expected_value}', Got: '{test_student.get(field, 'missing')}'")
+                
+                # Verify academic progress fields
+                academic_fields = ['level', 'total_points', 'streak_days', 'badges']
+                for field in academic_fields:
+                    if field in test_student:
+                        print(f"✅ Admin dashboard shows academic field '{field}' correctly")
+                    else:
+                        print(f"❌ Admin dashboard missing academic field '{field}'")
+            else:
+                print("❌ Test student not found in admin users list")
+        
+        return success, users
 
     def get_user_progress(self):
         """Get user progress (admin only)"""
