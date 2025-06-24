@@ -815,6 +815,77 @@ async def get_leaderboard(current_user: dict = Depends(get_current_user)):
         })
     return users
 
-if __name__ == "__main__":
+@app.post("/api/admin/create-word")
+async def create_word(word_data: dict, current_user: dict = Depends(get_current_user)):
+    if not current_user.get("is_teacher"):
+        raise HTTPException(status_code=403, detail="Admin access required")
+    
+    # Generate new word ID
+    word_id = str(uuid.uuid4())
+    word_doc = {
+        "id": word_id,
+        **word_data
+    }
+    
+    await db.words.insert_one(word_doc)
+    return {"status": "created", "id": word_id}
+
+@app.put("/api/admin/update-word/{word_id}")
+async def update_word(word_id: str, word_data: dict, current_user: dict = Depends(get_current_user)):
+    if not current_user.get("is_teacher"):
+        raise HTTPException(status_code=403, detail="Admin access required")
+    
+    result = await db.words.update_one(
+        {"id": word_id},
+        {"$set": word_data}
+    )
+    
+    if result.matched_count == 0:
+        raise HTTPException(status_code=404, detail="Word not found")
+    
+    return {"status": "updated"}
+
+@app.delete("/api/admin/delete-word/{word_id}")
+async def delete_word(word_id: str, current_user: dict = Depends(get_current_user)):
+    if not current_user.get("is_teacher"):
+        raise HTTPException(status_code=403, detail="Admin access required")
+    
+    result = await db.words.delete_one({"id": word_id})
+    
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Word not found")
+    
+    return {"status": "deleted"}
+
+@app.get("/api/admin/study-sets")
+async def get_study_sets(current_user: dict = Depends(get_current_user)):
+    if not current_user.get("is_teacher"):
+        raise HTTPException(status_code=403, detail="Admin access required")
+    
+    # Get all custom study sets for this teacher
+    study_sets = []
+    async for study_set in db.study_sets.find({"teacher_id": current_user["id"]}):
+        study_set.pop('_id', None)
+        study_sets.append(study_set)
+    
+    return study_sets
+
+@app.post("/api/admin/create-study-set")
+async def create_study_set(study_set_data: dict, current_user: dict = Depends(get_current_user)):
+    if not current_user.get("is_teacher"):
+        raise HTTPException(status_code=403, detail="Admin access required")
+    
+    study_set_id = str(uuid.uuid4())
+    study_set_doc = {
+        "id": study_set_id,
+        "teacher_id": current_user["id"],
+        "name": study_set_data["name"],
+        "description": study_set_data.get("description", ""),
+        "word_ids": study_set_data["word_ids"],
+        "created_at": datetime.utcnow()
+    }
+    
+    await db.study_sets.insert_one(study_set_doc)
+    return {"status": "created", "id": study_set_id}
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=8001)
