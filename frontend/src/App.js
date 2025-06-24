@@ -887,28 +887,38 @@ function App() {
               <div>
                 <h3 className="text-xl font-semibold text-navy-700 mb-6">📊 Student Overview</h3>
                 <div className="space-y-4">
-                  {adminUsers.filter(u => !u.is_teacher).map((student, index) => (
-                    <div key={student.id} className="bg-gray-50 rounded-xl p-4 border-l-4 border-gold-500">
-                      <div className="flex justify-between items-center">
-                        <div>
-                          <p className="font-semibold text-navy-800">
-                            {student.first_name} {student.last_name}
-                          </p>
-                          <p className="text-sm text-gray-600">{student.email}</p>
-                          <p className="text-sm text-gold-600">
-                            Level {student.level} • {student.total_points} points
-                          </p>
-                        </div>
-                        <div className="text-right">
-                          <div className="flex flex-wrap gap-1">
-                            {student.badges.slice(0, 2).map((badge, idx) => (
-                              <Badge key={idx} name={badge} earned={true} />
-                            ))}
+                  {adminUsers.filter(u => !u.is_teacher).length > 0 ? (
+                    adminUsers.filter(u => !u.is_teacher).map((student, index) => (
+                      <div key={student.id} className="bg-gray-50 rounded-xl p-4 border-l-4 border-gold-500">
+                        <div className="flex justify-between items-center">
+                          <div>
+                            <p className="font-semibold text-navy-800">
+                              {student.first_name} {student.last_name}
+                            </p>
+                            <p className="text-sm text-gray-600">{student.email}</p>
+                            <p className="text-sm text-gold-600">
+                              Level {student.level || 1} • {student.total_points || 0} points
+                            </p>
+                          </div>
+                          <div className="text-right">
+                            <div className="flex flex-wrap gap-1">
+                              {(student.badges || []).slice(0, 2).map((badge, idx) => (
+                                <Badge key={idx} name={badge} earned={true} />
+                              ))}
+                              {(student.badges || []).length === 0 && (
+                                <span className="text-xs text-gray-400">No badges yet</span>
+                              )}
+                            </div>
                           </div>
                         </div>
                       </div>
+                    ))
+                  ) : (
+                    <div className="text-center py-8 text-gray-500">
+                      <p>No students registered yet.</p>
+                      <p className="text-sm mt-2">Students will appear here after they sign up.</p>
                     </div>
-                  ))}
+                  )}
                 </div>
               </div>
               
@@ -928,10 +938,31 @@ function App() {
                     <div className="text-sm text-gold-600 font-medium">Teachers</div>
                   </div>
                   <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-xl p-6 text-center">
-                    <div className="text-3xl font-bold text-purple-600">100%</div>
-                    <div className="text-sm text-purple-600 font-medium">Engaged</div>
+                    <div className="text-3xl font-bold text-purple-600">
+                      {adminUsers.filter(u => !u.is_teacher && (u.total_points || 0) > 0).length}
+                    </div>
+                    <div className="text-sm text-purple-600 font-medium">Active Learners</div>
                   </div>
                 </div>
+                
+                <div className="mt-6 p-4 bg-navy-50 rounded-xl">
+                  <h4 className="font-semibold text-navy-700 mb-2">💡 Teaching Tips</h4>
+                  <ul className="text-sm text-navy-600 space-y-1">
+                    <li>• Encourage daily practice for better retention</li>
+                    <li>• Monitor student progress through individual sessions</li>
+                    <li>• Celebrate badge achievements to motivate learners</li>
+                    <li>• Use quiz results to identify challenging concepts</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+            
+            <div className="mt-8 p-6 bg-gradient-to-r from-gold-50 to-navy-50 rounded-xl">
+              <div className="text-center">
+                <JamaalCharacter 
+                  message="Teachers are the real Word Weaver heroes! Thanks for empowering students!" 
+                  size="medium"
+                />
               </div>
             </div>
           </div>
