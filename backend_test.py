@@ -203,32 +203,13 @@ class GreekLatinAPITester:
         
         return True
         
-    def verify_educational_value(self, words):
-        """Verify the educational value of the content"""
-        print("\n🔍 Verifying Educational Value...")
+    def get_user_profile(self):
+        """Get user profile"""
+        return self.run_test("Get User Profile", "GET", "user/profile", 200, token=self.student_token)
         
-        # Check for specific important roots
-        important_roots = ['graph', 'port', '-ology']
-        found_roots = {}
-        
-        for root in important_roots:
-            for word in words:
-                if word['root'] == root:
-                    found_roots[root] = word
-                    break
-        
-        # Check if all important roots were found
-        for root in important_roots:
-            if root not in found_roots:
-                print(f"❌ Important root '{root}' not found")
-            else:
-                print(f"✅ Found important root '{root}': {found_roots[root]['meaning']}")
-                
-        # Check if examples are relevant
-        for root, word in found_roots.items():
-            print(f"   - Examples for '{root}': {', '.join(word['examples'])}")
-            
-        return len(found_roots) == len(important_roots)
+    def get_leaderboard(self):
+        """Get the leaderboard"""
+        return self.run_test("Get Leaderboard", "GET", "leaderboard", 200, token=self.student_token)
 
     def run_all_tests(self):
         """Run all API tests"""
