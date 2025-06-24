@@ -154,9 +154,9 @@ class GreekLatinAPITester:
         """Verify the content of the word cards"""
         print("\n🔍 Verifying Word Content...")
         
-        # Check if we have 30 word elements
-        if len(words) != 30:
-            print(f"❌ Expected 30 word elements, got {len(words)}")
+        # Check if we have 33 word elements
+        if len(words) != 33:
+            print(f"❌ Expected 33 word elements, got {len(words)}")
             return False
             
         # Check content types
