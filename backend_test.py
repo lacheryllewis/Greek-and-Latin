@@ -2,6 +2,7 @@ import requests
 import unittest
 import uuid
 from datetime import datetime
+import json
 
 class GreekLatinAPITester:
     def __init__(self, base_url="https://5bfa331b-eeb3-4d9a-b920-01c65ef78380.preview.emergentagent.com"):
@@ -17,6 +18,7 @@ class GreekLatinAPITester:
         self.teacher_token = None
         self.student_id = None
         self.teacher_id = None
+        self.content_verification_results = {}
 
     def run_test(self, name, method, endpoint, expected_status, data=None, token=None):
         """Run a single API test"""
