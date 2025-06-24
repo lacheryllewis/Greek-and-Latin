@@ -386,6 +386,77 @@ const SlideCreator = ({ onSave, onCancel, editingSlide = null }) => {
   );
 };
 
+// Backup Manager Component
+const BackupManager = ({ backups, onCreateBackup, onRestoreBackup, onCancel }) => {
+  return (
+    <div className="bg-white rounded-2xl shadow-xl p-8 max-w-4xl mx-auto">
+      <h2 className="text-2xl font-bold text-navy-800 mb-6">🔐 Backup Management</h2>
+      
+      <div className="mb-6 p-4 bg-blue-50 rounded-lg border border-blue-200">
+        <h3 className="font-semibold text-blue-800 mb-2">📋 About Backups</h3>
+        <ul className="text-sm text-blue-700 space-y-1">
+          <li>• Automatic backups are created every time the system starts</li>
+          <li>• Manual backups preserve your current word cards with a timestamp</li>
+          <li>• Restoring a backup will replace all current word cards</li>
+          <li>• A safety backup is automatically created before any restoration</li>
+        </ul>
+      </div>
+
+      <div className="flex justify-between items-center mb-4">
+        <h3 className="text-lg font-semibold text-navy-700">Available Backups ({backups.length})</h3>
+        <button
+          onClick={onCreateBackup}
+          className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors font-medium"
+        >
+          📁 Create New Backup
+        </button>
+      </div>
+
+      <div className="max-h-64 overflow-y-auto space-y-3 border rounded-lg p-4 bg-gray-50">
+        {backups.map((backup, index) => (
+          <div key={backup.collection_name} className="flex justify-between items-center p-4 bg-white rounded-lg border hover:shadow-sm transition-all">
+            <div className="flex-1">
+              <div className="flex items-center space-x-3">
+                <span className={`px-2 py-1 rounded text-xs font-bold ${
+                  index === 0 ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'
+                }`}>
+                  {index === 0 ? 'Latest' : `#${index + 1}`}
+                </span>
+                <span className="font-semibold text-navy-800">{backup.readable_time}</span>
+                <span className="text-sm text-gray-600">{backup.word_count} words</span>
+              </div>
+              <div className="text-xs text-gray-500 mt-1">
+                Collection: {backup.collection_name}
+              </div>
+            </div>
+            <button
+              onClick={() => onRestoreBackup(backup.collection_name, backup.word_count)}
+              className="px-4 py-2 bg-blue-500 text-white text-sm rounded hover:bg-blue-600 transition-colors"
+            >
+              🔄 Restore
+            </button>
+          </div>
+        ))}
+        {backups.length === 0 && (
+          <div className="text-center py-8 text-gray-500">
+            <p>No backups available yet.</p>
+            <p className="text-sm mt-2">Create your first backup to protect your word cards.</p>
+          </div>
+        )}
+      </div>
+
+      <div className="flex justify-end space-x-4 mt-6">
+        <button
+          onClick={onCancel}
+          className="px-6 py-3 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors"
+        >
+          Close
+        </button>
+      </div>
+    </div>
+  );
+};
+
 // Study Set Creator Component
 const StudySetCreator = ({ words, onSave, onCancel }) => {
   const [setName, setSetName] = useState('');
