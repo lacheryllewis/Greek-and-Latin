@@ -572,10 +572,26 @@ async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(s
 # Initialize sample content and admin user on startup
 @app.on_event("startup")
 async def startup_event():
-    # Force refresh of words content with new data
-    await db.words.delete_many({})  # Clear existing content
-    await db.words.insert_many(SAMPLE_CONTENT)
-    logger.info(f"Initialized {len(SAMPLE_CONTENT)} Greek and Latin word elements")
+    # AUTOMATIC BACKUP: First, backup existing content before any changes
+    existing_words = []
+    async for word in db.words.find({}):
+        word.pop('_id', None)  # Remove MongoDB _id for clean backup
+        existing_words.append(word)
+    
+    if existing_words:
+        # Create backup with timestamp
+        backup_timestamp = datetime.utcnow().strftime("%Y%m%d_%H%M%S")
+        backup_collection = f"words_backup_{backup_timestamp}"
+        await db[backup_collection].insert_many(existing_words)
+        logger.info(f"🔐 BACKUP CREATED: {len(existing_words)} words backed up to {backup_collection}")
+    
+    # PRESERVE EXISTING CONTENT: Only add sample content if database is completely empty
+    word_count = await db.words.count_documents({})
+    if word_count == 0:
+        await db.words.insert_many(SAMPLE_CONTENT)
+        logger.info(f"✅ Initialized {len(SAMPLE_CONTENT)} sample Greek and Latin word elements")
+    else:
+        logger.info(f"✅ Preserved existing {word_count} word cards (no data loss)")
     
     # Create admin user if doesn't exist
     admin_exists = await db.users.find_one({"email": "admin@empoweru.com"})
