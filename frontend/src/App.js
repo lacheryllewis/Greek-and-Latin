@@ -1272,6 +1272,12 @@ function App() {
             <div className="text-8xl font-bold text-gray-800 mb-6">
               {currentWord?.root || 'Loading...'}
             </div>
+            {/* Debug info */}
+            {!currentWord && (
+              <div className="text-sm text-gray-500 mb-4">
+                Debug: Words: {currentWords.length}, Index: {currentWordIndex}, StudySet: {selectedStudySet}
+              </div>
+            )}
             
             {/* Meaning in quotes */}
             <div className="text-3xl text-gray-700 font-medium mb-6">
