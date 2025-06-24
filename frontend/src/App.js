@@ -788,7 +788,7 @@ function App() {
               ← Back
             </button>
             <AcademyLogo />
-            <h3 className="text-xl font-semibold text-navy-700 mt-4">Teacher Access</h3>
+            <h3 className="text-xl font-semibold text-navy-700 mt-4">Administrator Access</h3>
           </div>
           
           <form onSubmit={handleLogin} className="space-y-4">
