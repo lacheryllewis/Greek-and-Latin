@@ -753,8 +753,10 @@ function App() {
 
   const handleCreateStudySet = async (studySetData) => {
     try {
+      console.log('Creating study set:', studySetData);
       const response = await axios.post(`${API_BASE_URL}/api/admin/create-study-set`, studySetData);
-      if (response.status === 200) {
+      console.log('Study set creation response:', response);
+      if (response.status === 200 || response.status === 201) {
         // Update local study sets
         const selectedWords = words.filter(word => studySetData.word_ids.includes(word.id));
         setStudySets(prev => ({
@@ -765,6 +767,7 @@ function App() {
         alert('Study set created successfully!');
       }
     } catch (error) {
+      console.error('Study set creation error:', error);
       alert('Failed to create study set: ' + (error.response?.data?.detail || 'Unknown error'));
     }
   };
