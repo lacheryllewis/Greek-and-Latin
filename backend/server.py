@@ -653,7 +653,12 @@ async def register(user_data: UserCreate):
         "level": 1,
         "total_points": 0,
         "streak_days": 0,
-        "badges": []
+        "badges": [],
+        # New student profile fields
+        "grade": user_data.grade,
+        "school": user_data.school,
+        "block_number": user_data.block_number,
+        "teacher": user_data.teacher
     }
     
     await db.users.insert_one(user_doc)
@@ -672,7 +677,11 @@ async def register(user_data: UserCreate):
             "is_teacher": user_data.is_teacher,
             "level": 1,
             "total_points": 0,
-            "badges": []
+            "badges": [],
+            "grade": user_data.grade,
+            "school": user_data.school,
+            "block_number": user_data.block_number,
+            "teacher": user_data.teacher
         }
     }
 
