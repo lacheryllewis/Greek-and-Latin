@@ -725,11 +725,21 @@ function App() {
 
   const handleCreateSlide = async (slideData) => {
     try {
+      console.log('Creating slide with data:', slideData);
       const response = await axios.post(`${API_BASE_URL}/api/admin/create-word`, slideData);
+      console.log('Slide creation response:', response);
+      
       if (response.status === 200 || response.status === 201) {
-        await loadUserData(); // Refresh words
+        // Immediately refresh the words data to include the new slide
+        await loadUserData();
+        
+        // Update words count display
+        const wordsResponse = await axios.get(`${API_BASE_URL}/api/words`);
+        setWords(wordsResponse.data);
+        setStudySets({ all: wordsResponse.data, ...studySets });
+        
         setShowSlideCreator(false);
-        alert('Slide created successfully!');
+        alert(`Slide "${slideData.root}" created successfully! It's now available in Learning and Study modes.`);
       }
     } catch (error) {
       console.error('Slide creation error:', error);
