@@ -816,9 +816,282 @@ def test_slide_creation_and_access():
     
     return True
 
+def test_backup_system():
+    """Test the backup system functionality"""
+    print("\n🔍 Testing Backup System...")
+    
+    # First, login as admin
+    success, admin_token = test_admin_login_specific()
+    if not success:
+        print("❌ Admin login failed, stopping backup system test")
+        return False
+    
+    tester = GreekLatinAPITester()
+    
+    # 1. Check if automatic backups are created during system startup
+    # This is tested indirectly by checking if backups exist
+    print("\n🔍 Checking for existing backups...")
+    success, backups_response = tester.run_test(
+        "Get Backups", 
+        "GET", 
+        "admin/backups", 
+        200, 
+        token=admin_token
+    )
+    
+    if not success:
+        print("❌ Failed to get backups")
+        return False
+    
+    initial_backup_count = len(backups_response)
+    print(f"✅ Found {initial_backup_count} existing backups")
+    
+    # 2. Create a manual backup
+    print("\n🔍 Creating manual backup...")
+    success, create_response = tester.run_test(
+        "Create Backup", 
+        "POST", 
+        "admin/create-backup", 
+        200, 
+        token=admin_token
+    )
+    
+    if not success:
+        print("❌ Manual backup creation failed")
+        return False
+    
+    print(f"✅ Manual backup creation successful: {create_response}")
+    
+    # Verify backup was created with timestamp and word count
+    backup_timestamp = create_response.get('timestamp')
+    word_count = create_response.get('word_count')
+    collection_name = create_response.get('collection_name')
+    
+    if not backup_timestamp or not word_count or not collection_name:
+        print("❌ Backup response missing required fields")
+        return False
+    
+    print(f"✅ Backup created with timestamp: {backup_timestamp}")
+    print(f"✅ Backup contains {word_count} words")
+    print(f"✅ Backup collection name: {collection_name}")
+    
+    # 3. Verify backup appears in the list
+    print("\n🔍 Verifying backup appears in list...")
+    success, updated_backups = tester.run_test(
+        "Get Updated Backups", 
+        "GET", 
+        "admin/backups", 
+        200, 
+        token=admin_token
+    )
+    
+    if not success:
+        print("❌ Failed to get updated backups")
+        return False
+    
+    updated_backup_count = len(updated_backups)
+    print(f"✅ Found {updated_backup_count} backups (should be {initial_backup_count + 1})")
+    
+    if updated_backup_count <= initial_backup_count:
+        print(f"❌ Backup count mismatch: expected at least {initial_backup_count + 1}, got {updated_backup_count}")
+        return False
+    
+    # Find our new backup in the list
+    new_backup = None
+    for backup in updated_backups:
+        if backup.get('collection_name') == collection_name:
+            new_backup = backup
+            break
+    
+    if not new_backup:
+        print("❌ New backup not found in backups list")
+        return False
+    
+    # Verify backup has readable timestamp and word count
+    if 'readable_time' not in new_backup:
+        print("❌ Backup missing readable timestamp")
+        return False
+    
+    if 'word_count' not in new_backup:
+        print("❌ Backup missing word count")
+        return False
+    
+    print(f"✅ Backup found in list with readable timestamp: {new_backup.get('readable_time')}")
+    print(f"✅ Backup shows word count: {new_backup.get('word_count')}")
+    
+    # 4. Test data preservation by creating a new word
+    print("\n🔍 Testing data preservation by creating a new word...")
+    
+    # First, get current word count
+    success, initial_words = tester.run_test(
+        "Get Initial Words", 
+        "GET", 
+        "words", 
+        200, 
+        token=admin_token
+    )
+    
+    if not success:
+        print("❌ Failed to get initial words")
+        return False
+    
+    initial_word_count = len(initial_words)
+    print(f"✅ Initial word count: {initial_word_count}")
+    
+    # Create a test word
+    test_word_data = {
+        "type": "root",
+        "root": "backup_test",
+        "origin": "Latin",
+        "meaning": "for backup testing",
+        "definition": "A test word for backup system testing",
+        "examples": ["test1", "test2"],
+        "difficulty": "beginner",
+        "category": "testing",
+        "points": 10
+    }
+    
+    success, word_response = tester.run_test(
+        "Create Test Word", 
+        "POST", 
+        "admin/create-word", 
+        200, 
+        data=test_word_data, 
+        token=admin_token
+    )
+    
+    if not success:
+        print("❌ Test word creation failed")
+        return False
+    
+    word_id = word_response.get('id')
+    if not word_id:
+        print("❌ No word ID returned")
+        return False
+    
+    print(f"✅ Test word created with ID: {word_id}")
+    
+    # Verify word was added
+    success, updated_words = tester.run_test(
+        "Get Updated Words", 
+        "GET", 
+        "words", 
+        200, 
+        token=admin_token
+    )
+    
+    if not success:
+        print("❌ Failed to get updated words")
+        return False
+    
+    updated_word_count = len(updated_words)
+    print(f"✅ Updated word count: {updated_word_count} (should be {initial_word_count + 1})")
+    
+    if updated_word_count != initial_word_count + 1:
+        print(f"❌ Word count mismatch: expected {initial_word_count + 1}, got {updated_word_count}")
+        return False
+    
+    # 5. Create another backup to preserve the new word
+    print("\n🔍 Creating another backup to preserve the new word...")
+    success, second_backup_response = tester.run_test(
+        "Create Second Backup", 
+        "POST", 
+        "admin/create-backup", 
+        200, 
+        token=admin_token
+    )
+    
+    if not success:
+        print("❌ Second backup creation failed")
+        return False
+    
+    second_backup_collection = second_backup_response.get('collection_name')
+    print(f"✅ Second backup created: {second_backup_collection}")
+    
+    # 6. Optional: Test restore functionality
+    print("\n🔍 Testing restore functionality...")
+    
+    # Restore from the second backup (which should include our test word)
+    success, restore_response = tester.run_test(
+        "Restore Backup", 
+        "POST", 
+        "admin/restore-backup", 
+        200, 
+        data={"collection_name": second_backup_collection}, 
+        token=admin_token
+    )
+    
+    if not success:
+        print("❌ Backup restoration failed")
+        return False
+    
+    print(f"✅ Backup restoration successful: {restore_response}")
+    
+    # Verify pre-restore backup was created
+    pre_restore_backup = restore_response.get('pre_restore_backup')
+    if not pre_restore_backup:
+        print("❌ No pre-restore backup created")
+        return False
+    
+    print(f"✅ Pre-restore backup created: {pre_restore_backup}")
+    
+    # Verify word count after restore
+    restored_word_count = restore_response.get('word_count')
+    if not restored_word_count:
+        print("❌ No word count in restore response")
+        return False
+    
+    print(f"✅ Restored {restored_word_count} words")
+    
+    # Verify our test word is still there after restore
+    success, restored_words = tester.run_test(
+        "Get Restored Words", 
+        "GET", 
+        "words", 
+        200, 
+        token=admin_token
+    )
+    
+    if not success:
+        print("❌ Failed to get restored words")
+        return False
+    
+    # Find our test word
+    test_word = None
+    for word in restored_words:
+        if word.get('id') == word_id:
+            test_word = word
+            break
+    
+    if not test_word:
+        print("❌ Test word not found after restore")
+        return False
+    
+    print(f"✅ Test word preserved after restore")
+    
+    # Clean up - delete the test word
+    print("\n🔍 Cleaning up - deleting test word...")
+    success, _ = tester.run_test(
+        "Delete Test Word", 
+        "DELETE", 
+        f"admin/delete-word/{word_id}", 
+        200, 
+        token=admin_token
+    )
+    
+    if not success:
+        print("❌ Test word deletion failed during cleanup")
+        # Don't return false here, as the test itself was successful
+    
+    print(f"✅ Backup system testing completed successfully")
+    return True
+
 def main():
     # Run specific admin login test
     admin_test_success, _ = test_admin_login_specific()
+    
+    # Run backup system test
+    backup_system_success = test_backup_system()
     
     # Run slide management test
     slide_management_success = test_slide_management()
@@ -830,7 +1103,7 @@ def main():
     tester = GreekLatinAPITester()
     all_tests_success = tester.run_all_tests()
     
-    return 0 if (admin_test_success and slide_management_success and slide_test_success and all_tests_success) else 1
+    return 0 if (admin_test_success and backup_system_success and slide_management_success and slide_test_success and all_tests_success) else 1
 
 if __name__ == "__main__":
     main()
