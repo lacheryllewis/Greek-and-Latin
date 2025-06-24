@@ -256,9 +256,13 @@ class GreekLatinAPITester:
             
         return True
 
-    def run_all_tests(self):
-        """Run all API tests"""
-        print("🚀 Starting API Tests for Greek & Latin Learning App")
+    def get_user_profile(self):
+        """Get user profile"""
+        return self.run_test("Get User Profile", "GET", "user/profile", 200, token=self.student_token)
+        
+    def get_leaderboard(self):
+        """Get the leaderboard"""
+        return self.run_test("Get Leaderboard", "GET", "leaderboard", 200, token=self.student_token)
         
         # Test health check
         self.test_health_check()
