@@ -1060,6 +1060,12 @@ function App() {
               
               <div className="flex space-x-2">
                 <button
+                  onClick={() => setCurrentView('learning')}
+                  className="px-4 py-2 bg-gradient-to-r from-purple-500 to-purple-600 text-white rounded-lg font-medium hover:from-purple-600 hover:to-purple-700 transition-all"
+                >
+                  🧠 Learning
+                </button>
+                <button
                   onClick={() => setCurrentView('study')}
                   className="px-4 py-2 bg-gradient-to-r from-gold-500 to-gold-600 text-navy-900 rounded-lg font-medium hover:from-gold-600 hover:to-gold-700 transition-all"
                 >
