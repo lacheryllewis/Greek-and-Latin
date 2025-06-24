@@ -1042,5 +1042,166 @@ async def restore_backup(backup_data: dict, current_user: dict = Depends(get_cur
         "pre_restore_backup": current_backup_collection
     }
 
+@app.get("/api/admin/student/{student_id}")
+async def get_student_profile(student_id: str, current_user: dict = Depends(get_current_user)):
+    if not current_user.get("is_teacher"):
+        raise HTTPException(status_code=403, detail="Admin access required")
+    
+    # Get student profile
+    student = await db.users.find_one({"id": student_id}, {"password": 0})
+    if not student:
+        raise HTTPException(status_code=404, detail="Student not found")
+    
+    # Get student analytics
+    # Study sessions
+    study_sessions = []
+    async for session in db.study_sessions.find({"user_id": student_id}):
+        session.pop('_id', None)
+        study_sessions.append(session)
+    
+    # Quiz results
+    quiz_results = []
+    async for result in db.quiz_results.find({"user_id": student_id}):
+        result.pop('_id', None)
+        quiz_results.append(result)
+    
+    # Calculate analytics
+    total_sessions = len(study_sessions)
+    correct_sessions = len([s for s in study_sessions if s.get('correct', False)])
+    accuracy_rate = (correct_sessions / total_sessions * 100) if total_sessions > 0 else 0
+    
+    total_quizzes = len(quiz_results)
+    average_quiz_score = sum([r.get('score', 0) for r in quiz_results]) / total_quizzes if total_quizzes > 0 else 0
+    
+    # Recent activity (last 7 days)
+    from datetime import timedelta
+    recent_date = datetime.utcnow() - timedelta(days=7)
+    recent_sessions = [s for s in study_sessions if datetime.fromisoformat(s.get('timestamp', '').replace('Z', '+00:00')) > recent_date]
+    
+    analytics = {
+        "total_study_sessions": total_sessions,
+        "accuracy_rate": round(accuracy_rate, 1),
+        "total_quizzes": total_quizzes,
+        "average_quiz_score": round(average_quiz_score, 1),
+        "recent_activity_count": len(recent_sessions),
+        "study_sessions": study_sessions[-10:],  # Last 10 sessions
+        "quiz_results": quiz_results[-5:],  # Last 5 quiz results
+    }
+    
+    return {
+        "student": {
+            "id": student["id"],
+            "email": student["email"],
+            "first_name": student["first_name"],
+            "last_name": student["last_name"],
+            "is_teacher": student["is_teacher"],
+            "created_at": student["created_at"],
+            "level": student.get("level", 1),
+            "total_points": student.get("total_points", 0),
+            "streak_days": student.get("streak_days", 0),
+            "badges": student.get("badges", []),
+            "grade": student.get("grade"),
+            "school": student.get("school"),
+            "block_number": student.get("block_number"),
+            "teacher": student.get("teacher")
+        },
+        "analytics": analytics
+    }
+
+@app.put("/api/admin/student/{student_id}")
+async def update_student_profile(student_id: str, student_data: dict, current_user: dict = Depends(get_current_user)):
+    if not current_user.get("is_teacher"):
+        raise HTTPException(status_code=403, detail="Admin access required")
+    
+    # Check if student exists
+    existing_student = await db.users.find_one({"id": student_id})
+    if not existing_student:
+        raise HTTPException(status_code=404, detail="Student not found")
+    
+    # Update student profile
+    update_data = {
+        "first_name": student_data.get("first_name"),
+        "last_name": student_data.get("last_name"), 
+        "email": student_data.get("email"),
+        "grade": student_data.get("grade"),
+        "school": student_data.get("school"),
+        "block_number": student_data.get("block_number"),
+        "teacher": student_data.get("teacher")
+    }
+    
+    # Remove None values
+    update_data = {k: v for k, v in update_data.items() if v is not None}
+    
+    result = await db.users.update_one(
+        {"id": student_id},
+        {"$set": update_data}
+    )
+    
+    if result.matched_count == 0:
+        raise HTTPException(status_code=404, detail="Student not found")
+    
+    return {"status": "updated", "student_id": student_id}
+
+@app.delete("/api/admin/student/{student_id}")
+async def delete_student_profile(student_id: str, current_user: dict = Depends(get_current_user)):
+    if not current_user.get("is_teacher"):
+        raise HTTPException(status_code=403, detail="Admin access required")
+    
+    # Check if student exists
+    student = await db.users.find_one({"id": student_id})
+    if not student:
+        raise HTTPException(status_code=404, detail="Student not found")
+    
+    if student.get("is_teacher"):
+        raise HTTPException(status_code=400, detail="Cannot delete administrator accounts")
+    
+    # Delete student and all associated data
+    await db.users.delete_one({"id": student_id})
+    await db.study_sessions.delete_many({"user_id": student_id})
+    await db.quiz_results.delete_many({"user_id": student_id})
+    
+    return {"status": "deleted", "student_id": student_id}
+
+@app.post("/api/admin/create-student")
+async def create_student_profile(student_data: UserCreate, current_user: dict = Depends(get_current_user)):
+    if not current_user.get("is_teacher"):
+        raise HTTPException(status_code=403, detail="Admin access required")
+    
+    # Check if email already exists
+    existing_user = await db.users.find_one({"email": student_data.email})
+    if existing_user:
+        raise HTTPException(status_code=400, detail="Email already registered")
+    
+    # Create new student
+    student_id = str(uuid.uuid4())
+    hashed_password = hash_password(student_data.password)
+    
+    student_doc = {
+        "id": student_id,
+        "email": student_data.email,
+        "password": hashed_password,
+        "first_name": student_data.first_name,
+        "last_name": student_data.last_name,
+        "is_teacher": False,  # Always create as student
+        "created_at": datetime.utcnow(),
+        "level": 1,
+        "total_points": 0,
+        "streak_days": 0,
+        "badges": [],
+        "grade": student_data.grade,
+        "school": student_data.school,
+        "block_number": student_data.block_number,
+        "teacher": student_data.teacher
+    }
+    
+    await db.users.insert_one(student_doc)
+    
+    return {
+        "status": "created",
+        "student_id": student_id,
+        "message": f"Student {student_data.first_name} {student_data.last_name} created successfully"
+    }
+
+if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=8001)
