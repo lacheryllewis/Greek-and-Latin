@@ -689,11 +689,11 @@ function App() {
           <div className="bg-white rounded-3xl shadow-2xl p-12 mb-6 min-h-96 flex flex-col justify-center items-center text-center">
             <div className="mb-6">
               <span className={`px-6 py-2 rounded-full text-sm font-bold uppercase tracking-wide ${
-                currentWord.type === 'prefix' ? 'bg-blue-100 text-blue-800' :
-                currentWord.type === 'suffix' ? 'bg-green-100 text-green-800' :
+                currentWord?.type === 'prefix' ? 'bg-blue-100 text-blue-800' :
+                currentWord?.type === 'suffix' ? 'bg-green-100 text-green-800' :
                 'bg-purple-100 text-purple-800'
               }`}>
-                {currentWord.type} • {currentWord.origin} • {currentWord.difficulty}
+                {currentWord?.type || 'type'} • {currentWord?.origin || 'origin'} • {currentWord?.difficulty || 'difficulty'}
               </span>
             </div>
             
