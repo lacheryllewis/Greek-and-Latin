@@ -704,15 +704,15 @@ function App() {
             {showAnswer ? (
               <div className="space-y-6 animate-fadeIn">
                 <div className="text-3xl text-navy-700 font-semibold">
-                  "{currentWord.meaning}"
+                  "{currentWord?.meaning || 'No meaning available'}"
                 </div>
                 <div className="text-xl text-gray-600 max-w-2xl">
-                  {currentWord.definition}
+                  {currentWord?.definition || 'No definition available'}
                 </div>
                 <div className="mt-8">
                   <h4 className="text-lg font-semibold text-navy-700 mb-3">Examples:</h4>
                   <div className="flex flex-wrap justify-center gap-3">
-                    {currentWord.examples.map((example, index) => (
+                    {(currentWord?.examples || []).map((example, index) => (
                       <span key={index} className="bg-gold-100 text-navy-700 px-4 py-2 rounded-full font-medium">
                         {example}
                       </span>
@@ -720,7 +720,7 @@ function App() {
                   </div>
                 </div>
                 <div className="text-lg font-semibold text-gold-600">
-                  +{currentWord.points} points available
+                  +{currentWord?.points || 0} points available
                 </div>
               </div>
             ) : (
