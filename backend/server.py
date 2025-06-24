@@ -809,7 +809,12 @@ async def get_all_users(current_user: dict = Depends(get_current_user)):
             "level": user.get("level", 1),
             "total_points": user.get("total_points", 0),
             "streak_days": user.get("streak_days", 0),
-            "badges": user.get("badges", [])
+            "badges": user.get("badges", []),
+            # Include student profile information
+            "grade": user.get("grade"),
+            "school": user.get("school"),
+            "block_number": user.get("block_number"),
+            "teacher": user.get("teacher")
         })
     return users
 
