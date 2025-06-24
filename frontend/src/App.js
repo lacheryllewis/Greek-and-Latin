@@ -617,7 +617,8 @@ function App() {
   // Auth forms state
   const [loginData, setLoginData] = useState({ email: '', password: '' });
   const [registerData, setRegisterData] = useState({
-    email: '', password: '', first_name: '', last_name: '', is_teacher: false
+    email: '', password: '', first_name: '', last_name: '', is_teacher: false,
+    grade: '', school: '', block_number: '', teacher: ''
   });
 
   // Set up axios defaults
