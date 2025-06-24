@@ -61,19 +61,41 @@ class GreekLatinAPITester:
         return self.run_test("Health Check", "GET", "health", 200)
 
     def register_student(self):
-        """Register a student account"""
+        """Register a student account with enhanced profile fields"""
         data = {
             "email": self.student_email,
             "password": self.password,
             "first_name": "Test",
             "last_name": "Student",
-            "is_teacher": False
+            "is_teacher": False,
+            "grade": "7th Grade",
+            "school": "Washington Middle School",
+            "block_number": "A3",
+            "teacher": "Ms. Johnson"
         }
-        success, response = self.run_test("Register Student", "POST", "register", 200, data)
+        success, response = self.run_test("Register Student with Enhanced Profile", "POST", "register", 200, data)
         if success and 'access_token' in response:
             self.student_token = response['access_token']
             self.student_id = response['user']['id']
             print(f"Student registered with email: {self.student_email}")
+            
+            # Verify the enhanced profile fields were saved
+            if 'user' in response:
+                user = response['user']
+                profile_fields = {
+                    'grade': '7th Grade',
+                    'school': 'Washington Middle School',
+                    'block_number': 'A3',
+                    'teacher': 'Ms. Johnson'
+                }
+                
+                for field, expected_value in profile_fields.items():
+                    if field in user and user[field] == expected_value:
+                        print(f"✅ Enhanced profile field '{field}' saved correctly")
+                    else:
+                        print(f"❌ Enhanced profile field '{field}' not saved correctly. Expected: '{expected_value}', Got: '{user.get(field, 'missing')}'")
+                        return False
+            
             return True
         return False
 
