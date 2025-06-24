@@ -745,12 +745,18 @@ function App() {
       
       if (response.status === 200 || response.status === 201) {
         // Immediately refresh the words data to include the new slide
-        await loadUserData();
-        
-        // Update words count display
         const wordsResponse = await axios.get(`${API_BASE_URL}/api/words`);
+        console.log('Updated words after slide creation:', wordsResponse.data.length);
+        
+        // Update all state with new data
         setWords(wordsResponse.data);
-        setStudySets({ all: wordsResponse.data, ...studySets });
+        setStudySets(prev => ({ 
+          ...prev, 
+          all: wordsResponse.data 
+        }));
+        
+        // Also refresh user profile data
+        await loadUserData();
         
         setShowSlideCreator(false);
         alert(`Slide "${slideData.root}" created successfully! It's now available in Learning and Study modes.`);
