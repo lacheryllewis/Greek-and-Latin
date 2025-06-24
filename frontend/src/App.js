@@ -1472,6 +1472,12 @@ function App() {
               >
                 ➕ Create Slide
               </button>
+              <button
+                onClick={() => setShowStudySetCreator(true)}
+                className="px-4 py-2 bg-gradient-to-r from-navy-500 to-navy-600 text-white rounded-lg font-medium hover:from-navy-600 hover:to-navy-700 transition-all"
+              >
+                📚 Create Study Set
+              </button>
             </div>
           </div>
         </header>
