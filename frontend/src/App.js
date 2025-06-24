@@ -750,6 +750,24 @@ function App() {
     }
   };
 
+  const handleCreateStudySet = async (studySetData) => {
+    try {
+      const response = await axios.post(`${API_BASE_URL}/api/admin/create-study-set`, studySetData);
+      if (response.status === 200) {
+        // Update local study sets
+        const selectedWords = words.filter(word => studySetData.word_ids.includes(word.id));
+        setStudySets(prev => ({
+          ...prev,
+          [studySetData.name]: selectedWords
+        }));
+        setShowStudySetCreator(false);
+        alert('Study set created successfully!');
+      }
+    } catch (error) {
+      alert('Failed to create study set: ' + (error.response?.data?.detail || 'Unknown error'));
+    }
+  };
+
   const createCustomStudySet = (setName, wordIds) => {
     const selectedWords = words.filter(word => wordIds.includes(word.id));
     setStudySets(prev => ({
