@@ -726,12 +726,13 @@ function App() {
   const handleCreateSlide = async (slideData) => {
     try {
       const response = await axios.post(`${API_BASE_URL}/api/admin/create-word`, slideData);
-      if (response.status === 200) {
+      if (response.status === 200 || response.status === 201) {
         await loadUserData(); // Refresh words
         setShowSlideCreator(false);
         alert('Slide created successfully!');
       }
     } catch (error) {
+      console.error('Slide creation error:', error);
       alert('Failed to create slide: ' + (error.response?.data?.detail || 'Unknown error'));
     }
   };
