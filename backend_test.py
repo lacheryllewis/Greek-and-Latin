@@ -503,13 +503,16 @@ def test_slide_creation_and_access():
 
 def main():
     # Run specific admin login test
-    admin_test_success = test_admin_login_specific()
+    admin_test_success, _ = test_admin_login_specific()
+    
+    # Run slide creation and access test
+    slide_test_success = test_slide_creation_and_access()
     
     # Run all other tests
     tester = GreekLatinAPITester()
     all_tests_success = tester.run_all_tests()
     
-    return 0 if (admin_test_success and all_tests_success) else 1
+    return 0 if (admin_test_success and slide_test_success and all_tests_success) else 1
 
 if __name__ == "__main__":
     main()
