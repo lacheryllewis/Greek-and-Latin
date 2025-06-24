@@ -402,6 +402,308 @@ def test_admin_login_specific():
     print(f"✅ Admin login and endpoint access successful")
     return True, admin_token
 
+def test_slide_management():
+    """Test complete slide management functionality in the administrator dashboard"""
+    print("\n🔍 Testing Administrator Slide Management...")
+    
+    # First, login as admin
+    success, admin_token = test_admin_login_specific()
+    if not success:
+        print("❌ Admin login failed, stopping slide management test")
+        return False
+    
+    tester = GreekLatinAPITester()
+    
+    # 1. Get initial word count
+    print("\n🔍 Getting initial word count...")
+    success, initial_words = tester.run_test(
+        "Get Initial Words", 
+        "GET", 
+        "words", 
+        200, 
+        token=admin_token
+    )
+    
+    if not success:
+        print("❌ Failed to get initial words")
+        return False
+    
+    initial_count = len(initial_words)
+    print(f"✅ Initial word count: {initial_count}")
+    
+    # 2. Create a new test slide
+    test_slide_data = {
+        "type": "root",
+        "root": "test_slide",
+        "origin": "Latin",
+        "meaning": "for testing purposes",
+        "definition": "A test slide for administrator dashboard testing",
+        "examples": ["test1", "test2", "test3"],
+        "difficulty": "beginner",
+        "category": "testing",
+        "points": 10
+    }
+    
+    print("\n🔍 Creating test slide...")
+    success, response = tester.run_test(
+        "Create Test Slide", 
+        "POST", 
+        "admin/create-word", 
+        200, 
+        data=test_slide_data, 
+        token=admin_token
+    )
+    
+    if not success:
+        print("❌ Test slide creation failed")
+        return False
+    
+    print(f"✅ Test slide creation successful: {response}")
+    
+    # Get the slide ID
+    slide_id = response.get('id')
+    if not slide_id:
+        print("❌ No slide ID returned")
+        return False
+    
+    # 3. Verify the slide was added
+    print("\n🔍 Verifying slide was added...")
+    success, updated_words = tester.run_test(
+        "Get Updated Words", 
+        "GET", 
+        "words", 
+        200, 
+        token=admin_token
+    )
+    
+    if not success:
+        print("❌ Failed to get updated words")
+        return False
+    
+    updated_count = len(updated_words)
+    print(f"✅ Updated word count: {updated_count} (should be {initial_count + 1})")
+    
+    if updated_count != initial_count + 1:
+        print(f"❌ Word count mismatch: expected {initial_count + 1}, got {updated_count}")
+        return False
+    
+    # Find our test slide
+    test_slide = None
+    for word in updated_words:
+        if word.get('id') == slide_id:
+            test_slide = word
+            break
+    
+    if not test_slide:
+        print("❌ Test slide not found in words list")
+        return False
+    
+    # 4. Edit the slide
+    edited_slide_data = {
+        "type": "root",
+        "root": "test_slide_edited",
+        "origin": "Greek",  # Changed from Latin
+        "meaning": "for testing edit functionality",  # Changed
+        "definition": "An edited test slide for administrator dashboard testing",  # Changed
+        "examples": ["test1", "test2", "test3", "test4"],  # Added test4
+        "difficulty": "intermediate",  # Changed from beginner
+        "category": "testing",
+        "points": 15  # Changed from 10
+    }
+    
+    print("\n🔍 Editing test slide...")
+    success, edit_response = tester.run_test(
+        "Edit Test Slide", 
+        "PUT", 
+        f"admin/update-word/{slide_id}", 
+        200, 
+        data=edited_slide_data, 
+        token=admin_token
+    )
+    
+    if not success:
+        print("❌ Test slide edit failed")
+        return False
+    
+    print(f"✅ Test slide edit successful: {edit_response}")
+    
+    # 5. Verify the edit was applied
+    print("\n🔍 Verifying slide edit was applied...")
+    success, edited_words = tester.run_test(
+        "Get Edited Words", 
+        "GET", 
+        "words", 
+        200, 
+        token=admin_token
+    )
+    
+    if not success:
+        print("❌ Failed to get edited words")
+        return False
+    
+    # Find our edited test slide
+    edited_slide = None
+    for word in edited_words:
+        if word.get('id') == slide_id:
+            edited_slide = word
+            break
+    
+    if not edited_slide:
+        print("❌ Edited test slide not found in words list")
+        return False
+    
+    # Verify edited content
+    expected_edits = {
+        'root': 'test_slide_edited',
+        'origin': 'Greek',
+        'meaning': 'for testing edit functionality',
+        'definition': 'An edited test slide for administrator dashboard testing',
+        'difficulty': 'intermediate',
+        'points': 15
+    }
+    
+    for field, expected_value in expected_edits.items():
+        if edited_slide.get(field) != expected_value:
+            print(f"❌ Edited field '{field}' mismatch: expected '{expected_value}', got '{edited_slide.get(field)}'")
+            return False
+    
+    # Verify examples were updated
+    examples = edited_slide.get('examples', [])
+    expected_examples = ["test1", "test2", "test3", "test4"]
+    
+    if not all(example in examples for example in expected_examples):
+        print(f"❌ Edited examples mismatch: expected {expected_examples}, got {examples}")
+        return False
+    
+    print(f"✅ Test slide edit verification successful")
+    
+    # 6. Delete the slide
+    print("\n🔍 Deleting test slide...")
+    success, delete_response = tester.run_test(
+        "Delete Test Slide", 
+        "DELETE", 
+        f"admin/delete-word/{slide_id}", 
+        200, 
+        token=admin_token
+    )
+    
+    if not success:
+        print("❌ Test slide deletion failed")
+        return False
+    
+    print(f"✅ Test slide deletion successful: {delete_response}")
+    
+    # 7. Verify the slide was deleted
+    print("\n🔍 Verifying slide was deleted...")
+    success, final_words = tester.run_test(
+        "Get Final Words", 
+        "GET", 
+        "words", 
+        200, 
+        token=admin_token
+    )
+    
+    if not success:
+        print("❌ Failed to get final words")
+        return False
+    
+    final_count = len(final_words)
+    print(f"✅ Final word count: {final_count} (should be {initial_count})")
+    
+    if final_count != initial_count:
+        print(f"❌ Final word count mismatch: expected {initial_count}, got {final_count}")
+        return False
+    
+    # Verify our test slide is no longer in the list
+    for word in final_words:
+        if word.get('id') == slide_id:
+            print("❌ Test slide still found in words list after deletion")
+            return False
+    
+    print(f"✅ Test slide deletion verification successful")
+    
+    # 8. Verify integration with Learning and Study tabs
+    print("\n🔍 Testing integration with Learning and Study tabs...")
+    
+    # Create a new slide for integration testing
+    integration_slide_data = {
+        "type": "prefix",
+        "root": "meta-",
+        "origin": "Greek",
+        "meaning": "beyond, after",
+        "definition": "A prefix meaning beyond or after",
+        "examples": ["metaphysics", "metadata", "metamorphosis"],
+        "difficulty": "advanced",
+        "category": "position",
+        "points": 20
+    }
+    
+    print("\n🔍 Creating integration test slide...")
+    success, int_response = tester.run_test(
+        "Create Integration Slide", 
+        "POST", 
+        "admin/create-word", 
+        200, 
+        data=integration_slide_data, 
+        token=admin_token
+    )
+    
+    if not success:
+        print("❌ Integration slide creation failed")
+        return False
+    
+    int_slide_id = int_response.get('id')
+    if not int_slide_id:
+        print("❌ No integration slide ID returned")
+        return False
+    
+    # Register a student to verify slide accessibility
+    if not tester.register_student():
+        print("❌ Student registration failed, stopping test")
+        return False
+        
+    if not tester.login_student():
+        print("❌ Student login failed, stopping test")
+        return False
+    
+    # Now get all words to verify the slide is accessible to students
+    print("\n🔍 Verifying slide accessibility for students...")
+    success, student_words = tester.get_words()
+    if not success:
+        print("❌ Getting words for student failed")
+        return False
+    
+    # Find our integration slide
+    int_slide = None
+    for word in student_words:
+        if word.get('id') == int_slide_id:
+            int_slide = word
+            break
+    
+    if not int_slide:
+        print("❌ Integration slide not found in student words list")
+        return False
+    
+    print(f"✅ Integration slide is accessible to students")
+    print(f"✅ Integration slide appears in Learning and Study tabs (uses same API endpoint)")
+    
+    # Clean up - delete the integration test slide
+    print("\n🔍 Cleaning up - deleting integration test slide...")
+    success, _ = tester.run_test(
+        "Delete Integration Slide", 
+        "DELETE", 
+        f"admin/delete-word/{int_slide_id}", 
+        200, 
+        token=admin_token
+    )
+    
+    if not success:
+        print("❌ Integration slide deletion failed during cleanup")
+        # Don't return false here, as the test itself was successful
+    
+    print(f"✅ Administrator slide management testing completed successfully")
+    return True
+
 def test_slide_creation_and_access():
     """Test slide creation and accessibility in both Learning and Study tabs"""
     print("\n🔍 Testing Slide Creation and Accessibility...")
