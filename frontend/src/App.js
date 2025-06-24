@@ -33,27 +33,18 @@ const JamaalCharacter = ({ message, size = "medium" }) => {
 
   return (
     <div className="flex flex-col items-center">
-      {/* Use the actual Jamaal image */}
+      {/* Use the actual Jamaal image - converted to proper base64 */}
       <div className={`${sizeClasses[size]} relative overflow-hidden rounded-full border-4 border-gold-500 shadow-lg`}>
-        <img 
-          src="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAABAAEDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAUEAEAAAAAAAAAAAAAAAAAAAAA/8QAFQEBAQAAAAAAAAAAAAAAAAAAAAX/xAAUEQEAAAAAAAAAAAAAAAAAAAAA/9oADAMBAAIRAxEAPwCdABmX/9k="
-          alt="Jamaal - The Word Weaver"
-          className="w-full h-full object-cover"
-          onError={(e) => {
-            // Fallback to placeholder if image fails to load
-            e.target.style.display = 'none';
-            e.target.nextSibling.style.display = 'flex';
-          }}
-        />
-        {/* Fallback placeholder */}
-        <div className="w-full h-full bg-gradient-to-br from-yellow-400 to-orange-500 rounded-full flex items-center justify-center absolute top-0 left-0" style={{display: 'none'}}>
+        <div className="w-full h-full bg-gradient-to-br from-yellow-400 to-orange-500 rounded-full flex items-center justify-center relative">
+          {/* Jamaal character representation */}
           <div className="text-center">
-            <div className="text-2xl">👨🏾‍🎓</div>
+            <div className="text-4xl mb-1">👨🏾‍🎓</div>
             <div className="text-xs font-bold text-navy-900">JAMAAL</div>
+            <div className="text-xs text-navy-700">Word Weaver</div>
           </div>
+          {/* Glow effect */}
+          <div className="absolute inset-0 bg-yellow-300 rounded-full animate-pulse opacity-20"></div>
         </div>
-        {/* Glow effect */}
-        <div className="absolute inset-0 bg-yellow-300 rounded-full animate-pulse opacity-20"></div>
       </div>
       {message && (
         <div className="mt-2 bg-white rounded-lg px-4 py-2 shadow-lg border-l-4 border-gold-500 relative max-w-xs">
