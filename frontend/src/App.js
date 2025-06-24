@@ -790,26 +790,37 @@ function App() {
   };
 
   const handleDeleteSlide = async (slideId, slideRoot) => {
-    if (!window.confirm(`Are you sure you want to delete the slide "${slideRoot}"? This action cannot be undone.`)) {
+    const confirmed = window.confirm(`⚠️ DELETE SLIDE CONFIRMATION\n\nAre you sure you want to delete the slide "${slideRoot}"?\n\nThis action cannot be undone and will remove the slide from both Learning and Study modes.`);
+    
+    if (!confirmed) {
       return;
     }
 
     try {
+      console.log(`Deleting slide ${slideId} (${slideRoot})`);
       const response = await axios.delete(`${API_BASE_URL}/api/admin/delete-word/${slideId}`);
+      console.log('Delete response:', response);
+      
       if (response.status === 200 || response.status === 204) {
-        // Refresh words data
+        // Immediately refresh words data
         const wordsResponse = await axios.get(`${API_BASE_URL}/api/words`);
+        console.log(`Words after deletion: ${wordsResponse.data.length}`);
+        
         setWords(wordsResponse.data);
         setStudySets(prev => ({ 
           ...prev, 
           all: wordsResponse.data 
         }));
         
-        alert(`Slide "${slideRoot}" deleted successfully!`);
+        alert(`✅ Slide "${slideRoot}" has been successfully deleted!\n\nThe slide has been removed from Learning and Study modes.`);
       }
     } catch (error) {
       console.error('Slide deletion error:', error);
-      alert('Failed to delete slide: ' + (error.response?.data?.detail || 'Unknown error'));
+      if (error.response?.status === 404) {
+        alert(`❌ Slide "${slideRoot}" not found. It may have already been deleted.`);
+      } else {
+        alert(`❌ Failed to delete slide "${slideRoot}": ${error.response?.data?.detail || 'Unknown error'}`);
+      }
     }
   };
 
