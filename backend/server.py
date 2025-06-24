@@ -336,11 +336,15 @@ async def get_user_progress(user_id: str, current_user: dict = Depends(get_curre
     # Get study sessions
     sessions = []
     async for session in db.study_sessions.find({"user_id": user_id}):
+        # Remove MongoDB _id field
+        session.pop('_id', None)
         sessions.append(session)
     
     # Get quiz results
     quiz_results = []
     async for result in db.quiz_results.find({"user_id": user_id}):
+        # Remove MongoDB _id field
+        result.pop('_id', None)
         quiz_results.append(result)
     
     return {
