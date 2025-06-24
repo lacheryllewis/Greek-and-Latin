@@ -39,15 +39,16 @@ pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 SECRET_KEY = "empower-u-secret-key-change-in-production"
 ALGORITHM = "HS256"
 
-# Enhanced Greek and Latin content with gamification
+# Enhanced Greek and Latin content based on Membean curriculum
 SAMPLE_CONTENT = [
+    # Greek Prefixes
     {
         "id": str(uuid.uuid4()),
         "type": "prefix",
         "root": "anti-",
         "origin": "Greek",
         "meaning": "against, opposite",
-        "examples": ["antibody", "antifreeze", "antisocial"],
+        "examples": ["antifreeze", "antisocial", "anticlimactic"],
         "definition": "A prefix meaning against or opposite to something",
         "difficulty": "beginner",
         "points": 10,
@@ -55,7 +56,69 @@ SAMPLE_CONTENT = [
     },
     {
         "id": str(uuid.uuid4()),
-        "type": "prefix", 
+        "type": "prefix",
+        "root": "auto-",
+        "origin": "Greek",
+        "meaning": "self",
+        "examples": ["automobile", "automatic", "autobiography"],
+        "definition": "A prefix meaning self or same",
+        "difficulty": "beginner",
+        "points": 10,
+        "category": "self"
+    },
+    {
+        "id": str(uuid.uuid4()),
+        "type": "prefix",
+        "root": "bio-",
+        "origin": "Greek",
+        "meaning": "life",
+        "examples": ["biology", "biography", "biodegradable"],
+        "definition": "A prefix meaning life or living things",
+        "difficulty": "intermediate",
+        "points": 15,
+        "category": "life"
+    },
+    {
+        "id": str(uuid.uuid4()),
+        "type": "prefix",
+        "root": "geo-",
+        "origin": "Greek",
+        "meaning": "earth",
+        "examples": ["geography", "geology", "geometric"],
+        "definition": "A prefix meaning earth or ground",
+        "difficulty": "intermediate",
+        "points": 15,
+        "category": "earth"
+    },
+    {
+        "id": str(uuid.uuid4()),
+        "type": "prefix",
+        "root": "micro-",
+        "origin": "Greek",
+        "meaning": "small",
+        "examples": ["microscope", "microwave", "microphone"],
+        "definition": "A prefix meaning very small",
+        "difficulty": "intermediate",
+        "points": 15,
+        "category": "size"
+    },
+    {
+        "id": str(uuid.uuid4()),
+        "type": "prefix",
+        "root": "tele-",
+        "origin": "Greek",
+        "meaning": "far, distant",
+        "examples": ["telephone", "television", "telescope"],
+        "definition": "A prefix meaning far away or at a distance",
+        "difficulty": "beginner",
+        "points": 10,
+        "category": "distance"
+    },
+    
+    # Latin Prefixes
+    {
+        "id": str(uuid.uuid4()),
+        "type": "prefix",
         "root": "pre-",
         "origin": "Latin",
         "meaning": "before",
@@ -64,90 +127,6 @@ SAMPLE_CONTENT = [
         "difficulty": "beginner",
         "points": 10,
         "category": "time"
-    },
-    {
-        "id": str(uuid.uuid4()),
-        "type": "root",
-        "root": "graph",
-        "origin": "Greek", 
-        "meaning": "write, draw",
-        "examples": ["photograph", "biography", "paragraph"],
-        "definition": "A root word meaning to write or draw",
-        "difficulty": "intermediate",
-        "points": 15,
-        "category": "communication"
-    },
-    {
-        "id": str(uuid.uuid4()),
-        "type": "root",
-        "root": "port",
-        "origin": "Latin",
-        "meaning": "carry",
-        "examples": ["transport", "portable", "export"],
-        "definition": "A root word meaning to carry or bear",
-        "difficulty": "intermediate",
-        "points": 15,
-        "category": "movement"
-    },
-    {
-        "id": str(uuid.uuid4()),
-        "type": "suffix",
-        "root": "-ology",
-        "origin": "Greek",
-        "meaning": "study of",
-        "examples": ["biology", "psychology", "geology"],
-        "definition": "A suffix meaning the study of something",
-        "difficulty": "advanced",
-        "points": 20,
-        "category": "knowledge"
-    },
-    {
-        "id": str(uuid.uuid4()),
-        "type": "suffix",
-        "root": "-tion",
-        "origin": "Latin", 
-        "meaning": "act, state",
-        "examples": ["creation", "education", "celebration"],
-        "definition": "A suffix indicating an action or state",
-        "difficulty": "intermediate",
-        "points": 15,
-        "category": "action"
-    },
-    {
-        "id": str(uuid.uuid4()),
-        "type": "prefix",
-        "root": "trans-",
-        "origin": "Latin",
-        "meaning": "across, through",
-        "examples": ["transport", "translate", "transform"],
-        "definition": "A prefix meaning across or through",
-        "difficulty": "intermediate",
-        "points": 15,
-        "category": "movement"
-    },
-    {
-        "id": str(uuid.uuid4()),
-        "type": "root",
-        "root": "tele",
-        "origin": "Greek",
-        "meaning": "far, distant",
-        "examples": ["telephone", "television", "telescope"],
-        "definition": "A root meaning far away or at a distance",
-        "difficulty": "beginner",
-        "points": 10,
-        "category": "distance"
-    },
-    {
-        "id": str(uuid.uuid4()),
-        "type": "root",
-        "root": "dict",
-        "origin": "Latin",
-        "meaning": "say, speak",
-        "examples": ["dictionary", "predict", "contradict"],
-        "definition": "A root meaning to say or speak",
-        "difficulty": "intermediate",
-        "points": 15,
-        "category": "communication"
     },
     {
         "id": str(uuid.uuid4()),
@@ -163,6 +142,142 @@ SAMPLE_CONTENT = [
     },
     {
         "id": str(uuid.uuid4()),
+        "type": "prefix",
+        "root": "sub-",
+        "origin": "Latin",
+        "meaning": "under, below",
+        "examples": ["submarine", "subway", "subzero"],
+        "definition": "A prefix meaning under or below",
+        "difficulty": "intermediate",
+        "points": 15,
+        "category": "position"
+    },
+    {
+        "id": str(uuid.uuid4()),
+        "type": "prefix",
+        "root": "super-",
+        "origin": "Latin",
+        "meaning": "above, over",
+        "examples": ["superhero", "superior", "supernatural"],
+        "definition": "A prefix meaning above or beyond normal",
+        "difficulty": "intermediate",
+        "points": 15,
+        "category": "position"
+    },
+    {
+        "id": str(uuid.uuid4()),
+        "type": "prefix",
+        "root": "trans-",
+        "origin": "Latin",
+        "meaning": "across, through",
+        "examples": ["transport", "translate", "transform"],
+        "definition": "A prefix meaning across or through",
+        "difficulty": "intermediate",
+        "points": 15,
+        "category": "movement"
+    },
+    {
+        "id": str(uuid.uuid4()),
+        "type": "prefix",
+        "root": "inter-",
+        "origin": "Latin",
+        "meaning": "between, among",
+        "examples": ["international", "internet", "interview"],
+        "definition": "A prefix meaning between or among",
+        "difficulty": "advanced",
+        "points": 20,
+        "category": "position"
+    },
+    
+    # Greek Roots
+    {
+        "id": str(uuid.uuid4()),
+        "type": "root",
+        "root": "graph",
+        "origin": "Greek", 
+        "meaning": "write, draw",
+        "examples": ["photograph", "biography", "paragraph"],
+        "definition": "A root word meaning to write or draw",
+        "difficulty": "intermediate",
+        "points": 15,
+        "category": "communication"
+    },
+    {
+        "id": str(uuid.uuid4()),
+        "type": "root",
+        "root": "phon",
+        "origin": "Greek",
+        "meaning": "sound",
+        "examples": ["telephone", "symphony", "microphone"],
+        "definition": "A root word meaning sound or voice",
+        "difficulty": "intermediate",
+        "points": 15,
+        "category": "sound"
+    },
+    {
+        "id": str(uuid.uuid4()),
+        "type": "root",
+        "root": "photo",
+        "origin": "Greek",
+        "meaning": "light",
+        "examples": ["photograph", "photosynthesis", "photocopy"],
+        "definition": "A root word meaning light",
+        "difficulty": "intermediate",
+        "points": 15,
+        "category": "light"
+    },
+    {
+        "id": str(uuid.uuid4()),
+        "type": "root",
+        "root": "scope",
+        "origin": "Greek",
+        "meaning": "see, look",
+        "examples": ["telescope", "microscope", "stethoscope"],
+        "definition": "A root word meaning to see or examine",
+        "difficulty": "advanced",
+        "points": 20,
+        "category": "vision"
+    },
+    {
+        "id": str(uuid.uuid4()),
+        "type": "root",
+        "root": "meter",
+        "origin": "Greek",
+        "meaning": "measure",
+        "examples": ["thermometer", "speedometer", "kilometer"],
+        "definition": "A root word meaning to measure",
+        "difficulty": "advanced",
+        "points": 20,
+        "category": "measurement"
+    },
+    
+    # Latin Roots
+    {
+        "id": str(uuid.uuid4()),
+        "type": "root",
+        "root": "port",
+        "origin": "Latin",
+        "meaning": "carry",
+        "examples": ["transport", "portable", "export"],
+        "definition": "A root word meaning to carry or bear",
+        "difficulty": "intermediate",
+        "points": 15,
+        "category": "movement"
+    },
+    {
+        "id": str(uuid.uuid4()),
+        "type": "root",
+        "root": "dict",
+        "origin": "Latin",
+        "meaning": "say, speak",
+        "examples": ["dictionary", "predict", "contradict"],
+        "definition": "A root meaning to say or speak",
+        "difficulty": "intermediate",
+        "points": 15,
+        "category": "communication"
+    },
+    {
+        "id": str(uuid.uuid4()),
         "type": "root",
         "root": "spect",
         "origin": "Latin",
@@ -171,7 +286,95 @@ SAMPLE_CONTENT = [
         "definition": "A root meaning to look or see",
         "difficulty": "intermediate",
         "points": 15,
-        "category": "perception"
+        "category": "vision"
+    },
+    {
+        "id": str(uuid.uuid4()),
+        "type": "root",
+        "root": "ject",
+        "origin": "Latin",
+        "meaning": "throw",
+        "examples": ["project", "reject", "eject"],
+        "definition": "A root meaning to throw or cast",
+        "difficulty": "advanced",
+        "points": 20,
+        "category": "action"
+    },
+    {
+        "id": str(uuid.uuid4()),
+        "type": "root",
+        "root": "struct",
+        "origin": "Latin",
+        "meaning": "build",
+        "examples": ["construct", "structure", "instruct"],
+        "definition": "A root meaning to build or arrange",
+        "difficulty": "advanced",
+        "points": 20,
+        "category": "building"
+    },
+    {
+        "id": str(uuid.uuid4()),
+        "type": "root",
+        "root": "tract",
+        "origin": "Latin",
+        "meaning": "pull, draw",
+        "examples": ["attract", "contract", "extract"],
+        "definition": "A root meaning to pull or draw",
+        "difficulty": "advanced",
+        "points": 20,
+        "category": "movement"
+    },
+    
+    # Greek Suffixes
+    {
+        "id": str(uuid.uuid4()),
+        "type": "suffix",
+        "root": "-ology",
+        "origin": "Greek",
+        "meaning": "study of",
+        "examples": ["biology", "psychology", "geology"],
+        "definition": "A suffix meaning the study of something",
+        "difficulty": "advanced",
+        "points": 20,
+        "category": "knowledge"
+    },
+    {
+        "id": str(uuid.uuid4()),
+        "type": "suffix",
+        "root": "-phobia",
+        "origin": "Greek",
+        "meaning": "fear of",
+        "examples": ["claustrophobia", "arachnophobia", "hydrophobia"],
+        "definition": "A suffix meaning fear or dread of something",
+        "difficulty": "advanced",
+        "points": 20,
+        "category": "emotion"
+    },
+    {
+        "id": str(uuid.uuid4()),
+        "type": "suffix",
+        "root": "-ism",
+        "origin": "Greek",
+        "meaning": "belief, condition",
+        "examples": ["patriotism", "criticism", "heroism"],
+        "definition": "A suffix indicating a belief, practice, or condition",
+        "difficulty": "advanced",
+        "points": 20,
+        "category": "belief"
+    },
+    
+    # Latin Suffixes
+    {
+        "id": str(uuid.uuid4()),
+        "type": "suffix",
+        "root": "-tion",
+        "origin": "Latin", 
+        "meaning": "act, state",
+        "examples": ["creation", "education", "celebration"],
+        "definition": "A suffix indicating an action or state",
+        "difficulty": "intermediate",
+        "points": 15,
+        "category": "action"
     },
     {
         "id": str(uuid.uuid4()),
@@ -184,6 +387,68 @@ SAMPLE_CONTENT = [
         "difficulty": "beginner",
         "points": 10,
         "category": "ability"
+    },
+    {
+        "id": str(uuid.uuid4()),
+        "type": "suffix",
+        "root": "-ment",
+        "origin": "Latin",
+        "meaning": "result, action",
+        "examples": ["movement", "achievement", "development"],
+        "definition": "A suffix indicating the result of an action",
+        "difficulty": "intermediate",
+        "points": 15,
+        "category": "result"
+    },
+    {
+        "id": str(uuid.uuid4()),
+        "type": "suffix",
+        "root": "-ous",
+        "origin": "Latin",
+        "meaning": "full of, having",
+        "examples": ["dangerous", "famous", "curious"],
+        "definition": "A suffix meaning full of or characterized by",
+        "difficulty": "intermediate",
+        "points": 15,
+        "category": "quality"
+    },
+    {
+        "id": str(uuid.uuid4()),
+        "type": "suffix",
+        "root": "-ity",
+        "origin": "Latin",
+        "meaning": "state, quality",
+        "examples": ["personality", "reality", "creativity"],
+        "definition": "A suffix indicating a state or quality",
+        "difficulty": "advanced",
+        "points": 20,
+        "category": "quality"
+    },
+    
+    # Additional Important Roots
+    {
+        "id": str(uuid.uuid4()),
+        "type": "root",
+        "root": "form",
+        "origin": "Latin",
+        "meaning": "shape",
+        "examples": ["transform", "uniform", "deform"],
+        "definition": "A root meaning shape or appearance",
+        "difficulty": "intermediate",
+        "points": 15,
+        "category": "shape"
+    },
+    {
+        "id": str(uuid.uuid4()),
+        "type": "root",
+        "root": "sens",
+        "origin": "Latin",
+        "meaning": "feel",
+        "examples": ["sensitive", "nonsense", "sensor"],
+        "definition": "A root meaning to feel or perceive",
+        "difficulty": "intermediate",
+        "points": 15,
+        "category": "feeling"
     }
 ]
 
