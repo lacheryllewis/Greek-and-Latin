@@ -15,7 +15,7 @@ import logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-app = FastAPI(title="Greek Latin Learning API")
+app = FastAPI(title="Empower U - Word Weaver API")
 
 # CORS middleware
 app.add_middleware(
@@ -28,7 +28,7 @@ app.add_middleware(
 
 # Database setup
 MONGO_URL = os.environ.get('MONGO_URL', 'mongodb://localhost:27017')
-DB_NAME = os.environ.get('DB_NAME', 'greek_latin_app')
+DB_NAME = os.environ.get('DB_NAME', 'empower_u_app')
 
 client = AsyncIOMotorClient(MONGO_URL)
 db = client[DB_NAME]
@@ -36,10 +36,10 @@ db = client[DB_NAME]
 # Security
 security = HTTPBearer()
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
-SECRET_KEY = "your-secret-key-here-change-in-production"
+SECRET_KEY = "empower-u-secret-key-change-in-production"
 ALGORITHM = "HS256"
 
-# Sample Greek and Latin content
+# Enhanced Greek and Latin content with gamification
 SAMPLE_CONTENT = [
     {
         "id": str(uuid.uuid4()),
@@ -48,7 +48,10 @@ SAMPLE_CONTENT = [
         "origin": "Greek",
         "meaning": "against, opposite",
         "examples": ["antibody", "antifreeze", "antisocial"],
-        "definition": "A prefix meaning against or opposite to something"
+        "definition": "A prefix meaning against or opposite to something",
+        "difficulty": "beginner",
+        "points": 10,
+        "category": "opposition"
     },
     {
         "id": str(uuid.uuid4()),
@@ -57,7 +60,10 @@ SAMPLE_CONTENT = [
         "origin": "Latin",
         "meaning": "before",
         "examples": ["preview", "predict", "prepare"],
-        "definition": "A prefix meaning before in time or place"
+        "definition": "A prefix meaning before in time or place",
+        "difficulty": "beginner",
+        "points": 10,
+        "category": "time"
     },
     {
         "id": str(uuid.uuid4()),
@@ -66,7 +72,10 @@ SAMPLE_CONTENT = [
         "origin": "Greek", 
         "meaning": "write, draw",
         "examples": ["photograph", "biography", "paragraph"],
-        "definition": "A root word meaning to write or draw"
+        "definition": "A root word meaning to write or draw",
+        "difficulty": "intermediate",
+        "points": 15,
+        "category": "communication"
     },
     {
         "id": str(uuid.uuid4()),
@@ -75,7 +84,10 @@ SAMPLE_CONTENT = [
         "origin": "Latin",
         "meaning": "carry",
         "examples": ["transport", "portable", "export"],
-        "definition": "A root word meaning to carry or bear"
+        "definition": "A root word meaning to carry or bear",
+        "difficulty": "intermediate",
+        "points": 15,
+        "category": "movement"
     },
     {
         "id": str(uuid.uuid4()),
@@ -84,7 +96,10 @@ SAMPLE_CONTENT = [
         "origin": "Greek",
         "meaning": "study of",
         "examples": ["biology", "psychology", "geology"],
-        "definition": "A suffix meaning the study of something"
+        "definition": "A suffix meaning the study of something",
+        "difficulty": "advanced",
+        "points": 20,
+        "category": "knowledge"
     },
     {
         "id": str(uuid.uuid4()),
@@ -93,16 +108,22 @@ SAMPLE_CONTENT = [
         "origin": "Latin", 
         "meaning": "act, state",
         "examples": ["creation", "education", "celebration"],
-        "definition": "A suffix indicating an action or state"
+        "definition": "A suffix indicating an action or state",
+        "difficulty": "intermediate",
+        "points": 15,
+        "category": "action"
     },
     {
         "id": str(uuid.uuid4()),
         "type": "prefix",
-        "root": "un-",
-        "origin": "Old English",
-        "meaning": "not, opposite",
-        "examples": ["unhappy", "unfair", "unlock"],
-        "definition": "A prefix meaning not or the opposite of"
+        "root": "trans-",
+        "origin": "Latin",
+        "meaning": "across, through",
+        "examples": ["transport", "translate", "transform"],
+        "definition": "A prefix meaning across or through",
+        "difficulty": "intermediate",
+        "points": 15,
+        "category": "movement"
     },
     {
         "id": str(uuid.uuid4()),
@@ -111,7 +132,10 @@ SAMPLE_CONTENT = [
         "origin": "Greek",
         "meaning": "far, distant",
         "examples": ["telephone", "television", "telescope"],
-        "definition": "A root meaning far away or at a distance"
+        "definition": "A root meaning far away or at a distance",
+        "difficulty": "beginner",
+        "points": 10,
+        "category": "distance"
     },
     {
         "id": str(uuid.uuid4()),
@@ -120,7 +144,10 @@ SAMPLE_CONTENT = [
         "origin": "Latin",
         "meaning": "say, speak",
         "examples": ["dictionary", "predict", "contradict"],
-        "definition": "A root meaning to say or speak"
+        "definition": "A root meaning to say or speak",
+        "difficulty": "intermediate",
+        "points": 15,
+        "category": "communication"
     },
     {
         "id": str(uuid.uuid4()),
@@ -129,7 +156,34 @@ SAMPLE_CONTENT = [
         "origin": "Latin",
         "meaning": "again, back",
         "examples": ["return", "rebuild", "recall"],
-        "definition": "A prefix meaning again or back"
+        "definition": "A prefix meaning again or back",
+        "difficulty": "beginner",
+        "points": 10,
+        "category": "repetition"
+    },
+    {
+        "id": str(uuid.uuid4()),
+        "type": "root",
+        "root": "spect",
+        "origin": "Latin",
+        "meaning": "look, see",
+        "examples": ["inspect", "respect", "spectacle"],
+        "definition": "A root meaning to look or see",
+        "difficulty": "intermediate",
+        "points": 15,
+        "category": "perception"
+    },
+    {
+        "id": str(uuid.uuid4()),
+        "type": "suffix",
+        "root": "-able",
+        "origin": "Latin",
+        "meaning": "capable of",
+        "examples": ["readable", "comfortable", "reliable"],
+        "definition": "A suffix meaning capable of or worthy of",
+        "difficulty": "beginner",
+        "points": 10,
+        "category": "ability"
     }
 ]
 
@@ -152,6 +206,10 @@ class User(BaseModel):
     last_name: str
     is_teacher: bool
     created_at: datetime
+    level: int = 1
+    total_points: int = 0
+    streak_days: int = 0
+    badges: List[str] = []
 
 class WordCard(BaseModel):
     id: str
@@ -161,18 +219,29 @@ class WordCard(BaseModel):
     meaning: str
     examples: List[str]
     definition: str
+    difficulty: str
+    points: int
+    category: str
 
 class StudySession(BaseModel):
     user_id: str
     word_id: str
     correct: bool
     timestamp: datetime
+    points_earned: int = 0
 
 class QuizResult(BaseModel):
     user_id: str
     score: int
     total_questions: int
     timestamp: datetime
+    points_earned: int = 0
+
+class UserProgress(BaseModel):
+    user_id: str
+    mastered_words: List[str] = []
+    studying_words: List[str] = []
+    difficult_words: List[str] = []
 
 # Helper functions
 def hash_password(password: str) -> str:
@@ -187,6 +256,38 @@ def create_access_token(data: dict):
     to_encode.update({"exp": expire})
     encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
     return encoded_jwt
+
+def calculate_level(points: int) -> int:
+    """Calculate user level based on points"""
+    if points < 100:
+        return 1
+    elif points < 250:
+        return 2
+    elif points < 500:
+        return 3
+    elif points < 1000:
+        return 4
+    elif points < 2000:
+        return 5
+    else:
+        return min(10, 5 + (points - 2000) // 500)
+
+def get_badges(points: int, level: int, streak: int) -> List[str]:
+    """Determine earned badges"""
+    badges = []
+    if points >= 100:
+        badges.append("First Century")
+    if points >= 500:
+        badges.append("Word Warrior")
+    if points >= 1000:
+        badges.append("Scholar Supreme")
+    if level >= 5:
+        badges.append("Level Master")
+    if streak >= 7:
+        badges.append("Week Warrior")
+    if streak >= 30:
+        badges.append("Monthly Master")
+    return badges
 
 async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(security)):
     try:
@@ -203,7 +304,7 @@ async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(s
     except jwt.PyJWTError:
         raise HTTPException(status_code=401, detail="Invalid token")
 
-# Initialize sample content on startup
+# Initialize sample content and admin user on startup
 @app.on_event("startup")
 async def startup_event():
     # Initialize sample words if collection is empty
@@ -211,11 +312,31 @@ async def startup_event():
     if count == 0:
         await db.words.insert_many(SAMPLE_CONTENT)
         logger.info("Initialized sample Greek and Latin content")
+    
+    # Create admin user if doesn't exist
+    admin_exists = await db.users.find_one({"email": "admin@empoweru.com"})
+    if not admin_exists:
+        admin_id = str(uuid.uuid4())
+        admin_doc = {
+            "id": admin_id,
+            "email": "admin@empoweru.com",
+            "password": hash_password("EmpowerU2024!"),
+            "first_name": "Admin",
+            "last_name": "User",
+            "is_teacher": True,
+            "created_at": datetime.utcnow(),
+            "level": 10,
+            "total_points": 10000,
+            "streak_days": 0,
+            "badges": ["Admin", "Founder"]
+        }
+        await db.users.insert_one(admin_doc)
+        logger.info("Created admin user: admin@empoweru.com / EmpowerU2024!")
 
 # API Routes
 @app.get("/api/health")
 async def health_check():
-    return {"status": "healthy", "timestamp": datetime.utcnow()}
+    return {"status": "healthy", "app": "Empower U - Word Weaver", "timestamp": datetime.utcnow()}
 
 @app.post("/api/register")
 async def register(user_data: UserCreate):
@@ -223,6 +344,9 @@ async def register(user_data: UserCreate):
     existing_user = await db.users.find_one({"email": user_data.email})
     if existing_user:
         raise HTTPException(status_code=400, detail="Email already registered")
+    
+    # Only allow teacher registration by admin invitation (for now, allow for testing)
+    # In production, you'd check for invitation codes here
     
     # Create new user
     user_id = str(uuid.uuid4())
@@ -235,7 +359,11 @@ async def register(user_data: UserCreate):
         "first_name": user_data.first_name,
         "last_name": user_data.last_name,
         "is_teacher": user_data.is_teacher,
-        "created_at": datetime.utcnow()
+        "created_at": datetime.utcnow(),
+        "level": 1,
+        "total_points": 0,
+        "streak_days": 0,
+        "badges": []
     }
     
     await db.users.insert_one(user_doc)
@@ -251,7 +379,10 @@ async def register(user_data: UserCreate):
             "email": user_data.email,
             "first_name": user_data.first_name,
             "last_name": user_data.last_name,
-            "is_teacher": user_data.is_teacher
+            "is_teacher": user_data.is_teacher,
+            "level": 1,
+            "total_points": 0,
+            "badges": []
         }
     }
 
@@ -271,7 +402,10 @@ async def login(user_data: UserLogin):
             "email": user["email"],
             "first_name": user["first_name"],
             "last_name": user["last_name"],
-            "is_teacher": user["is_teacher"]
+            "is_teacher": user["is_teacher"],
+            "level": user.get("level", 1),
+            "total_points": user.get("total_points", 0),
+            "badges": user.get("badges", [])
         }
     }
 
@@ -282,34 +416,77 @@ async def get_words(current_user: dict = Depends(get_current_user)):
         words.append(WordCard(**word))
     return words
 
-@app.get("/api/words/{word_id}", response_model=WordCard)
-async def get_word(word_id: str, current_user: dict = Depends(get_current_user)):
-    word = await db.words.find_one({"id": word_id})
-    if not word:
-        raise HTTPException(status_code=404, detail="Word not found")
-    return WordCard(**word)
+@app.get("/api/user/profile")
+async def get_user_profile(current_user: dict = Depends(get_current_user)):
+    level = calculate_level(current_user.get("total_points", 0))
+    badges = get_badges(
+        current_user.get("total_points", 0),
+        level,
+        current_user.get("streak_days", 0)
+    )
+    
+    # Update user with calculated values
+    await db.users.update_one(
+        {"id": current_user["id"]},
+        {"$set": {"level": level, "badges": badges}}
+    )
+    
+    return {
+        "id": current_user["id"],
+        "first_name": current_user["first_name"],
+        "last_name": current_user["last_name"],
+        "email": current_user["email"],
+        "level": level,
+        "total_points": current_user.get("total_points", 0),
+        "streak_days": current_user.get("streak_days", 0),
+        "badges": badges
+    }
 
 @app.post("/api/study-session")
 async def record_study_session(session: StudySession, current_user: dict = Depends(get_current_user)):
+    # Get word to determine points
+    word = await db.words.find_one({"id": session.word_id})
+    points_earned = word.get("points", 10) if session.correct else 0
+    
     session_doc = {
         "user_id": session.user_id,
         "word_id": session.word_id,
         "correct": session.correct,
-        "timestamp": session.timestamp
+        "timestamp": session.timestamp,
+        "points_earned": points_earned
     }
     await db.study_sessions.insert_one(session_doc)
-    return {"status": "recorded"}
+    
+    # Update user points
+    if points_earned > 0:
+        await db.users.update_one(
+            {"id": current_user["id"]},
+            {"$inc": {"total_points": points_earned}}
+        )
+    
+    return {"status": "recorded", "points_earned": points_earned}
 
 @app.post("/api/quiz-result")
 async def record_quiz_result(result: QuizResult, current_user: dict = Depends(get_current_user)):
+    points_earned = result.score * 5  # 5 points per correct answer
+    
     result_doc = {
         "user_id": result.user_id,
         "score": result.score,
         "total_questions": result.total_questions,
-        "timestamp": result.timestamp
+        "timestamp": result.timestamp,
+        "points_earned": points_earned
     }
     await db.quiz_results.insert_one(result_doc)
-    return {"status": "recorded"}
+    
+    # Update user points
+    if points_earned > 0:
+        await db.users.update_one(
+            {"id": current_user["id"]},
+            {"$inc": {"total_points": points_earned}}
+        )
+    
+    return {"status": "recorded", "points_earned": points_earned}
 
 @app.get("/api/admin/users")
 async def get_all_users(current_user: dict = Depends(get_current_user)):
@@ -324,7 +501,11 @@ async def get_all_users(current_user: dict = Depends(get_current_user)):
             "first_name": user["first_name"],
             "last_name": user["last_name"],
             "is_teacher": user["is_teacher"],
-            "created_at": user["created_at"]
+            "created_at": user["created_at"],
+            "level": user.get("level", 1),
+            "total_points": user.get("total_points", 0),
+            "streak_days": user.get("streak_days", 0),
+            "badges": user.get("badges", [])
         })
     return users
 
@@ -352,6 +533,23 @@ async def get_user_progress(user_id: str, current_user: dict = Depends(get_curre
         "study_sessions": sessions,
         "quiz_results": quiz_results
     }
+
+@app.get("/api/leaderboard")
+async def get_leaderboard(current_user: dict = Depends(get_current_user)):
+    """Get top students by points"""
+    users = []
+    async for user in db.users.find(
+        {"is_teacher": False}, 
+        {"password": 0}
+    ).sort("total_points", -1).limit(10):
+        users.append({
+            "first_name": user["first_name"],
+            "last_name": user["last_name"],
+            "level": user.get("level", 1),
+            "total_points": user.get("total_points", 0),
+            "badges": user.get("badges", [])
+        })
+    return users
 
 if __name__ == "__main__":
     import uvicorn

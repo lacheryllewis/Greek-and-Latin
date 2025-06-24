@@ -4,8 +4,79 @@ import './App.css';
 
 const API_BASE_URL = process.env.REACT_APP_BACKEND_URL || import.meta.env.REACT_APP_BACKEND_URL;
 
+// Empower U Logo Component
+const EmpowerULogo = () => (
+  <div className="flex flex-col items-center mb-8">
+    <div className="relative">
+      {/* Logo simulation - replace with actual image */}
+      <div className="bg-navy-900 text-white px-8 py-3 rounded-full border-4 border-gold-500 mb-2">
+        <span className="text-2xl font-bold tracking-wider">EMPOWER</span>
+      </div>
+      <div className="bg-gold-500 text-navy-900 w-16 h-16 rounded-lg flex items-center justify-center mx-auto border-4 border-navy-900 -mt-2">
+        <span className="text-2xl font-black">U</span>
+      </div>
+    </div>
+    <div className="text-center mt-4">
+      <h2 className="text-lg font-medium text-gray-700">Greek and Latin Affixes</h2>
+      <p className="text-sm text-gray-500">Word Weaver Learning Platform</p>
+    </div>
+  </div>
+);
+
+// Jamaal Character Component
+const JamaalCharacter = ({ message, size = "medium" }) => {
+  const sizeClasses = {
+    small: "w-16 h-16",
+    medium: "w-32 h-32",
+    large: "w-48 h-48"
+  };
+
+  return (
+    <div className="flex flex-col items-center">
+      {/* Character placeholder - replace with actual image */}
+      <div className={`${sizeClasses[size]} bg-gradient-to-br from-yellow-400 to-orange-500 rounded-full flex items-center justify-center border-4 border-gold-500 shadow-lg relative`}>
+        <div className="text-center">
+          <div className="text-2xl">👨🏾‍🎓</div>
+          <div className="text-xs font-bold text-navy-900">JAMAAL</div>
+        </div>
+        {/* Glow effect */}
+        <div className="absolute inset-0 bg-yellow-300 rounded-full animate-pulse opacity-20"></div>
+      </div>
+      {message && (
+        <div className="mt-2 bg-white rounded-lg px-4 py-2 shadow-lg border-l-4 border-gold-500 relative">
+          <p className="text-sm text-gray-700 font-medium">{message}</p>
+          <div className="absolute -top-2 left-4 w-4 h-4 bg-white transform rotate-45 border-l border-t border-gray-200"></div>
+        </div>
+      )}
+    </div>
+  );
+};
+
+// Progress Bar Component
+const ProgressBar = ({ current, max, label }) => (
+  <div className="mb-4">
+    <div className="flex justify-between text-sm text-gray-600 mb-1">
+      <span>{label}</span>
+      <span>{current} / {max}</span>
+    </div>
+    <div className="w-full bg-gray-200 rounded-full h-3">
+      <div 
+        className="bg-gradient-to-r from-gold-400 to-gold-600 h-3 rounded-full transition-all duration-300"
+        style={{ width: `${(current / max) * 100}%` }}
+      ></div>
+    </div>
+  </div>
+);
+
+// Badge Component
+const Badge = ({ name, earned = false }) => (
+  <div className={`px-3 py-1 rounded-full text-xs font-bold ${earned ? 'bg-gold-500 text-navy-900' : 'bg-gray-200 text-gray-500'}`}>
+    {name}
+  </div>
+);
+
 function App() {
-  const [currentView, setCurrentView] = useState('login');
+  const [currentView, setCurrentView] = useState('welcome');
   const [user, setUser] = useState(null);
   const [words, setWords] = useState([]);
   const [currentWordIndex, setCurrentWordIndex] = useState(0);
@@ -14,6 +85,8 @@ function App() {
   const [quizScore, setQuizScore] = useState(0);
   const [quizQuestion, setQuizQuestion] = useState(0);
   const [adminUsers, setAdminUsers] = useState([]);
+  const [userProfile, setUserProfile] = useState(null);
+  const [leaderboard, setLeaderboard] = useState([]);
 
   // Auth forms state
   const [loginData, setLoginData] = useState({ email: '', password: '' });
@@ -26,17 +99,22 @@ function App() {
     const token = localStorage.getItem('token');
     if (token) {
       axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-      // Try to load user from token
       loadUserData();
     }
   }, []);
 
   const loadUserData = async () => {
     try {
-      const response = await axios.get(`${API_BASE_URL}/api/words`);
-      if (response.data) {
-        setWords(response.data);
-        setCurrentView('flashcards');
+      const [wordsResponse, profileResponse] = await Promise.all([
+        axios.get(`${API_BASE_URL}/api/words`),
+        axios.get(`${API_BASE_URL}/api/user/profile`)
+      ]);
+      
+      if (wordsResponse.data && profileResponse.data) {
+        setWords(wordsResponse.data);
+        setUserProfile(profileResponse.data);
+        setUser(profileResponse.data);
+        setCurrentView('dashboard');
       }
     } catch (error) {
       console.error('Failed to load user data:', error);
@@ -54,10 +132,8 @@ function App() {
       axios.defaults.headers.common['Authorization'] = `Bearer ${access_token}`;
       setUser(user);
       
-      // Load words
-      const wordsResponse = await axios.get(`${API_BASE_URL}/api/words`);
-      setWords(wordsResponse.data);
-      setCurrentView('flashcards');
+      // Load user data
+      await loadUserData();
     } catch (error) {
       alert('Login failed: ' + (error.response?.data?.detail || 'Unknown error'));
     }
@@ -73,10 +149,8 @@ function App() {
       axios.defaults.headers.common['Authorization'] = `Bearer ${access_token}`;
       setUser(user);
       
-      // Load words
-      const wordsResponse = await axios.get(`${API_BASE_URL}/api/words`);
-      setWords(wordsResponse.data);
-      setCurrentView('flashcards');
+      // Load user data
+      await loadUserData();
     } catch (error) {
       alert('Registration failed: ' + (error.response?.data?.detail || 'Unknown error'));
     }
@@ -86,8 +160,9 @@ function App() {
     localStorage.removeItem('token');
     delete axios.defaults.headers.common['Authorization'];
     setUser(null);
-    setCurrentView('login');
+    setCurrentView('welcome');
     setWords([]);
+    setUserProfile(null);
   };
 
   const nextCard = () => {
@@ -104,12 +179,19 @@ function App() {
     if (!user || !words[currentWordIndex]) return;
     
     try {
-      await axios.post(`${API_BASE_URL}/api/study-session`, {
+      const response = await axios.post(`${API_BASE_URL}/api/study-session`, {
         user_id: user.id,
         word_id: words[currentWordIndex].id,
         correct: correct,
         timestamp: new Date().toISOString()
       });
+      
+      if (response.data.points_earned > 0) {
+        setUserProfile(prev => ({
+          ...prev,
+          total_points: prev.total_points + response.data.points_earned
+        }));
+      }
     } catch (error) {
       console.error('Failed to record study session:', error);
     }
@@ -133,7 +215,6 @@ function App() {
     } else {
       // Quiz finished
       recordQuizResult();
-      alert(`Quiz completed! Score: ${correct ? quizScore + 1 : quizScore}/10`);
       setQuizMode(false);
     }
   };
@@ -142,12 +223,21 @@ function App() {
     if (!user) return;
     
     try {
-      await axios.post(`${API_BASE_URL}/api/quiz-result`, {
+      const response = await axios.post(`${API_BASE_URL}/api/quiz-result`, {
         user_id: user.id,
         score: quizScore,
         total_questions: 10,
         timestamp: new Date().toISOString()
       });
+      
+      if (response.data.points_earned > 0) {
+        setUserProfile(prev => ({
+          ...prev,
+          total_points: prev.total_points + response.data.points_earned
+        }));
+      }
+      
+      alert(`🎉 Quiz Completed!\nScore: ${quizScore}/10\nPoints Earned: ${response.data.points_earned}`);
     } catch (error) {
       console.error('Failed to record quiz result:', error);
     }
@@ -164,40 +254,191 @@ function App() {
     }
   };
 
-  // Login View
-  if (currentView === 'login') {
+  const loadLeaderboard = async () => {
+    try {
+      const response = await axios.get(`${API_BASE_URL}/api/leaderboard`);
+      setLeaderboard(response.data);
+    } catch (error) {
+      console.error('Failed to load leaderboard:', error);
+    }
+  };
+
+  // Welcome Page
+  if (currentView === 'welcome') {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-purple-400 via-pink-500 to-red-500 flex items-center justify-center p-4">
-        <div className="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-md">
+      <div className="min-h-screen bg-gradient-to-br from-navy-900 via-navy-800 to-navy-700 flex items-center justify-center p-4">
+        <div className="bg-white rounded-3xl shadow-2xl p-12 w-full max-w-md relative overflow-hidden">
+          {/* Background decoration */}
+          <div className="absolute top-0 right-0 w-32 h-32 bg-gold-100 rounded-full -mr-16 -mt-16"></div>
+          <div className="absolute bottom-0 left-0 w-24 h-24 bg-gold-50 rounded-full -ml-12 -mb-12"></div>
+          
+          <div className="relative z-10">
+            <EmpowerULogo />
+            
+            <div className="space-y-4">
+              <button
+                onClick={() => setCurrentView('student-login')}
+                className="w-full bg-gradient-to-r from-gold-500 to-gold-600 text-navy-900 py-4 rounded-xl font-bold text-lg hover:from-gold-600 hover:to-gold-700 transition-all transform hover:scale-105 shadow-lg"
+              >
+                🎓 Student Login
+              </button>
+              
+              <button
+                onClick={() => setCurrentView('teacher-login')}
+                className="w-full bg-transparent border-2 border-navy-200 text-navy-600 py-3 rounded-xl font-medium text-sm hover:bg-navy-50 transition-all"
+              >
+                👩‍🏫 Teacher? Click here
+              </button>
+            </div>
+            
+            <div className="mt-8 text-center">
+              <JamaalCharacter 
+                message="Ready to become a Word Weaver? Let's unlock the power of language!" 
+                size="medium"
+              />
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Student Login/Register Page
+  if (currentView === 'student-login' || currentView === 'student-register') {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-navy-900 via-navy-800 to-navy-700 flex items-center justify-center p-4">
+        <div className="bg-white rounded-3xl shadow-2xl p-8 w-full max-w-md">
           <div className="text-center mb-8">
-            <h1 className="text-4xl font-bold text-gray-800 mb-2">🏛️ Greek & Latin</h1>
-            <p className="text-gray-600">Master Roots, Prefixes & Suffixes</p>
+            <button 
+              onClick={() => setCurrentView('welcome')}
+              className="absolute top-4 left-4 text-gray-400 hover:text-gray-600"
+            >
+              ← Back
+            </button>
+            <EmpowerULogo />
           </div>
           
           <div className="flex mb-6 bg-gray-100 rounded-lg p-1">
             <button 
               className={`flex-1 py-2 px-4 rounded-md font-medium transition-all ${
-                currentView === 'login' ? 'bg-white shadow-sm text-purple-600' : 'text-gray-600'
+                currentView === 'student-login' ? 'bg-white shadow-sm text-navy-600' : 'text-gray-600'
               }`}
-              onClick={() => setCurrentView('login')}
+              onClick={() => setCurrentView('student-login')}
             >
               Login
             </button>
             <button 
               className={`flex-1 py-2 px-4 rounded-md font-medium transition-all ${
-                currentView === 'register' ? 'bg-white shadow-sm text-purple-600' : 'text-gray-600'
+                currentView === 'student-register' ? 'bg-white shadow-sm text-navy-600' : 'text-gray-600'
               }`}
-              onClick={() => setCurrentView('register')}
+              onClick={() => setCurrentView('student-register')}
             >
-              Register
+              Sign Up
             </button>
           </div>
 
+          {currentView === 'student-login' ? (
+            <form onSubmit={handleLogin} className="space-y-4">
+              <input
+                type="email"
+                placeholder="Email"
+                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gold-500 focus:border-transparent"
+                value={loginData.email}
+                onChange={(e) => setLoginData({...loginData, email: e.target.value})}
+                required
+              />
+              <input
+                type="password"
+                placeholder="Password"
+                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gold-500 focus:border-transparent"
+                value={loginData.password}
+                onChange={(e) => setLoginData({...loginData, password: e.target.value})}
+                required
+              />
+              <button 
+                type="submit"
+                className="w-full bg-gradient-to-r from-gold-500 to-gold-600 text-navy-900 py-3 rounded-lg font-semibold hover:from-gold-600 hover:to-gold-700 transition-all"
+              >
+                Login & Start Learning
+              </button>
+            </form>
+          ) : (
+            <form onSubmit={handleRegister} className="space-y-4">
+              <div className="flex space-x-2">
+                <input
+                  type="text"
+                  placeholder="First Name"
+                  className="flex-1 p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gold-500 focus:border-transparent"
+                  value={registerData.first_name}
+                  onChange={(e) => setRegisterData({...registerData, first_name: e.target.value})}
+                  required
+                />
+                <input
+                  type="text"
+                  placeholder="Last Name"
+                  className="flex-1 p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gold-500 focus:border-transparent"
+                  value={registerData.last_name}
+                  onChange={(e) => setRegisterData({...registerData, last_name: e.target.value})}
+                  required
+                />
+              </div>
+              <input
+                type="email"
+                placeholder="Email"
+                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gold-500 focus:border-transparent"
+                value={registerData.email}
+                onChange={(e) => setRegisterData({...registerData, email: e.target.value})}
+                required
+              />
+              <input
+                type="password"
+                placeholder="Password"
+                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gold-500 focus:border-transparent"
+                value={registerData.password}
+                onChange={(e) => setRegisterData({...registerData, password: e.target.value})}
+                required
+              />
+              <button 
+                type="submit"
+                className="w-full bg-gradient-to-r from-gold-500 to-gold-600 text-navy-900 py-3 rounded-lg font-semibold hover:from-gold-600 hover:to-gold-700 transition-all"
+              >
+                Join the Word Weavers
+              </button>
+            </form>
+          )}
+          
+          <div className="mt-6 text-center">
+            <JamaalCharacter 
+              message={currentView === 'student-login' ? "Welcome back, Word Weaver!" : "Ready to start your journey?"} 
+              size="small"
+            />
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Teacher Login Page
+  if (currentView === 'teacher-login') {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-navy-900 via-navy-800 to-navy-700 flex items-center justify-center p-4">
+        <div className="bg-white rounded-3xl shadow-2xl p-8 w-full max-w-md">
+          <div className="text-center mb-8">
+            <button 
+              onClick={() => setCurrentView('welcome')}
+              className="absolute top-4 left-4 text-gray-400 hover:text-gray-600"
+            >
+              ← Back
+            </button>
+            <EmpowerULogo />
+            <h3 className="text-xl font-semibold text-navy-700 mt-4">Teacher Access</h3>
+          </div>
+          
           <form onSubmit={handleLogin} className="space-y-4">
             <input
               type="email"
-              placeholder="Email"
-              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+              placeholder="Teacher Email"
+              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gold-500 focus:border-transparent"
               value={loginData.email}
               onChange={(e) => setLoginData({...loginData, email: e.target.value})}
               required
@@ -205,301 +446,291 @@ function App() {
             <input
               type="password"
               placeholder="Password"
-              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gold-500 focus:border-transparent"
               value={loginData.password}
               onChange={(e) => setLoginData({...loginData, password: e.target.value})}
               required
             />
             <button 
               type="submit"
-              className="w-full bg-purple-600 text-white py-3 rounded-lg font-semibold hover:bg-purple-700 transition-colors"
+              className="w-full bg-gradient-to-r from-navy-600 to-navy-700 text-white py-3 rounded-lg font-semibold hover:from-navy-700 hover:to-navy-800 transition-all"
             >
-              Login
+              Access Teacher Dashboard
             </button>
           </form>
-        </div>
-      </div>
-    );
-  }
-
-  // Register View
-  if (currentView === 'register') {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-purple-400 via-pink-500 to-red-500 flex items-center justify-center p-4">
-        <div className="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-md">
-          <div className="text-center mb-8">
-            <h1 className="text-4xl font-bold text-gray-800 mb-2">🏛️ Greek & Latin</h1>
-            <p className="text-gray-600">Join the Learning Adventure!</p>
-          </div>
           
-          <div className="flex mb-6 bg-gray-100 rounded-lg p-1">
-            <button 
-              className={`flex-1 py-2 px-4 rounded-md font-medium transition-all ${
-                currentView === 'login' ? 'bg-white shadow-sm text-purple-600' : 'text-gray-600'
-              }`}
-              onClick={() => setCurrentView('login')}
-            >
-              Login
-            </button>
-            <button 
-              className={`flex-1 py-2 px-4 rounded-md font-medium transition-all ${
-                currentView === 'register' ? 'bg-white shadow-sm text-purple-600' : 'text-gray-600'
-              }`}
-              onClick={() => setCurrentView('register')}
-            >
-              Register
-            </button>
+          <div className="mt-6 p-4 bg-gray-50 rounded-lg">
+            <p className="text-sm text-gray-600 text-center">
+              Teacher accounts are invitation-only. Contact your administrator for access.
+            </p>
+            <p className="text-xs text-gray-500 text-center mt-2">
+              Demo: admin@empoweru.com / EmpowerU2024!
+            </p>
           </div>
-
-          <form onSubmit={handleRegister} className="space-y-4">
-            <div className="flex space-x-2">
-              <input
-                type="text"
-                placeholder="First Name"
-                className="flex-1 p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                value={registerData.first_name}
-                onChange={(e) => setRegisterData({...registerData, first_name: e.target.value})}
-                required
-              />
-              <input
-                type="text"
-                placeholder="Last Name"
-                className="flex-1 p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                value={registerData.last_name}
-                onChange={(e) => setRegisterData({...registerData, last_name: e.target.value})}
-                required
-              />
-            </div>
-            <input
-              type="email"
-              placeholder="Email"
-              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-              value={registerData.email}
-              onChange={(e) => setRegisterData({...registerData, email: e.target.value})}
-              required
-            />
-            <input
-              type="password"
-              placeholder="Password"
-              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-              value={registerData.password}
-              onChange={(e) => setRegisterData({...registerData, password: e.target.value})}
-              required
-            />
-            <label className="flex items-center space-x-2">
-              <input
-                type="checkbox"
-                className="rounded border-gray-300 text-purple-600 focus:ring-purple-500"
-                checked={registerData.is_teacher}
-                onChange={(e) => setRegisterData({...registerData, is_teacher: e.target.checked})}
-              />
-              <span className="text-sm text-gray-600">I am a teacher</span>
-            </label>
-            <button 
-              type="submit"
-              className="w-full bg-purple-600 text-white py-3 rounded-lg font-semibold hover:bg-purple-700 transition-colors"
-            >
-              Register
-            </button>
-          </form>
         </div>
       </div>
     );
   }
 
-  // Main App View
-  if (words.length === 0) {
+  // Loading state
+  if (words.length === 0 && currentView === 'dashboard') {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-400 to-purple-600 flex items-center justify-center">
-        <div className="text-white text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white mx-auto mb-4"></div>
-          <p>Loading words...</p>
+      <div className="min-h-screen bg-gradient-to-br from-navy-900 to-navy-700 flex items-center justify-center">
+        <div className="text-center text-white">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gold-500 mx-auto mb-4"></div>
+          <p className="text-lg">Loading your Word Weaver journey...</p>
+          <JamaalCharacter message="Getting everything ready for you!" size="small" />
         </div>
       </div>
     );
   }
 
-  const currentWord = words[currentWordIndex];
-
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-400 via-purple-500 to-pink-500">
-      {/* Header */}
-      <header className="bg-white shadow-lg p-4">
-        <div className="max-w-6xl mx-auto flex justify-between items-center">
-          <div className="flex items-center space-x-4">
-            <h1 className="text-3xl font-bold text-gray-800">🏛️ Greek & Latin Academy</h1>
-            <span className="text-sm text-gray-600">Welcome, {user?.first_name}!</span>
-          </div>
-          <div className="flex items-center space-x-4">
-            <button
-              onClick={() => setCurrentView('flashcards')}
-              className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-                currentView === 'flashcards' ? 'bg-purple-600 text-white' : 'text-gray-600 hover:bg-gray-100'
-              }`}
-            >
-              📚 Study
-            </button>
-            {user?.is_teacher && (
-              <button
-                onClick={() => { setCurrentView('admin'); loadAdminData(); }}
-                className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-                  currentView === 'admin' ? 'bg-purple-600 text-white' : 'text-gray-600 hover:bg-gray-100'
-                }`}
-              >
-                👩‍🏫 Admin
-              </button>
-            )}
-            <button
-              onClick={handleLogout}
-              className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors"
-            >
-              Logout
-            </button>
-          </div>
-        </div>
-      </header>
-
-      {/* Admin View */}
-      {currentView === 'admin' && user?.is_teacher && (
-        <div className="max-w-6xl mx-auto p-6">
-          <div className="bg-white rounded-2xl shadow-2xl p-8">
-            <h2 className="text-3xl font-bold text-gray-800 mb-6">👩‍🏫 Teacher Dashboard</h2>
+  // Main Dashboard
+  if (currentView === 'dashboard') {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-navy-900 via-navy-800 to-navy-700">
+        {/* Header */}
+        <header className="bg-white shadow-lg p-4">
+          <div className="max-w-6xl mx-auto flex justify-between items-center">
+            <div className="flex items-center space-x-6">
+              <div className="flex items-center space-x-2">
+                <div className="bg-navy-900 text-white px-4 py-1 rounded-full">
+                  <span className="font-bold">EMPOWER</span>
+                </div>
+                <div className="bg-gold-500 text-navy-900 w-8 h-8 rounded flex items-center justify-center">
+                  <span className="font-black text-sm">U</span>
+                </div>
+              </div>
+              <div className="text-navy-700">
+                <span className="font-semibold">Welcome back, {userProfile?.first_name}!</span>
+                <div className="text-sm text-gray-600">Level {userProfile?.level} Word Weaver</div>
+              </div>
+            </div>
             
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-              <div>
-                <h3 className="text-xl font-semibold text-gray-700 mb-4">📊 Student Overview</h3>
-                <div className="space-y-3">
-                  {adminUsers.map((student, index) => (
-                    <div key={student.id} className="bg-gray-50 rounded-lg p-4 border-l-4 border-purple-500">
-                      <div className="flex justify-between items-center">
-                        <div>
-                          <p className="font-medium text-gray-800">
-                            {student.first_name} {student.last_name}
-                          </p>
-                          <p className="text-sm text-gray-600">{student.email}</p>
-                          <p className="text-xs text-gray-500">
-                            Joined: {new Date(student.created_at).toLocaleDateString()}
-                          </p>
-                        </div>
-                        <div className="text-right">
-                          <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                            student.is_teacher ? 'bg-blue-100 text-blue-800' : 'bg-green-100 text-green-800'
-                          }`}>
-                            {student.is_teacher ? 'Teacher' : 'Student'}
-                          </span>
-                        </div>
-                      </div>
-                    </div>
+            <div className="flex items-center space-x-4">
+              <div className="text-right">
+                <div className="text-lg font-bold text-gold-600">{userProfile?.total_points} pts</div>
+                <div className="text-xs text-gray-500">Total Points</div>
+              </div>
+              
+              <div className="flex space-x-2">
+                <button
+                  onClick={() => setCurrentView('study')}
+                  className="px-4 py-2 bg-gradient-to-r from-gold-500 to-gold-600 text-navy-900 rounded-lg font-medium hover:from-gold-600 hover:to-gold-700 transition-all"
+                >
+                  📚 Study
+                </button>
+                <button
+                  onClick={() => { setCurrentView('leaderboard'); loadLeaderboard(); }}
+                  className="px-4 py-2 bg-navy-600 text-white rounded-lg hover:bg-navy-700 transition-colors"
+                >
+                  🏆 Leaderboard
+                </button>
+                {user?.is_teacher && (
+                  <button
+                    onClick={() => { setCurrentView('admin'); loadAdminData(); }}
+                    className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
+                  >
+                    👩‍🏫 Admin
+                  </button>
+                )}
+                <button
+                  onClick={handleLogout}
+                  className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors"
+                >
+                  Logout
+                </button>
+              </div>
+            </div>
+          </div>
+        </header>
+
+        <div className="max-w-6xl mx-auto p-6">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            {/* Main Dashboard Content */}
+            <div className="lg:col-span-2 space-y-6">
+              {/* Progress Overview */}
+              <div className="bg-white rounded-2xl shadow-xl p-6">
+                <h2 className="text-2xl font-bold text-navy-800 mb-6">Your Word Weaver Journey</h2>
+                
+                <div className="grid grid-cols-2 gap-4 mb-6">
+                  <div className="bg-gradient-to-br from-gold-100 to-gold-200 rounded-xl p-4 text-center">
+                    <div className="text-3xl font-bold text-gold-700">{userProfile?.level}</div>
+                    <div className="text-sm text-gold-600">Current Level</div>
+                  </div>
+                  <div className="bg-gradient-to-br from-navy-100 to-navy-200 rounded-xl p-4 text-center">
+                    <div className="text-3xl font-bold text-navy-700">{userProfile?.total_points}</div>
+                    <div className="text-sm text-navy-600">Total Points</div>
+                  </div>
+                </div>
+
+                <ProgressBar 
+                  current={userProfile?.total_points || 0} 
+                  max={Math.max((userProfile?.level || 1) * 100, 100)} 
+                  label="Progress to Next Level" 
+                />
+
+                <div className="flex flex-wrap gap-2 mt-4">
+                  {['First Century', 'Word Warrior', 'Scholar Supreme', 'Level Master'].map(badge => (
+                    <Badge 
+                      key={badge} 
+                      name={badge} 
+                      earned={userProfile?.badges?.includes(badge)} 
+                    />
                   ))}
                 </div>
               </div>
-              
-              <div>
-                <h3 className="text-xl font-semibold text-gray-700 mb-4">📈 Quick Stats</h3>
+
+              {/* Quick Actions */}
+              <div className="bg-white rounded-2xl shadow-xl p-6">
+                <h3 className="text-xl font-semibold text-navy-800 mb-4">Ready to Learn?</h3>
                 <div className="grid grid-cols-2 gap-4">
-                  <div className="bg-blue-50 rounded-lg p-4 text-center">
-                    <div className="text-2xl font-bold text-blue-600">{adminUsers.filter(u => !u.is_teacher).length}</div>
-                    <div className="text-sm text-blue-600">Students</div>
+                  <button
+                    onClick={() => setCurrentView('study')}
+                    className="bg-gradient-to-br from-gold-400 to-gold-600 text-navy-900 p-6 rounded-xl hover:from-gold-500 hover:to-gold-700 transition-all transform hover:scale-105 shadow-lg"
+                  >
+                    <div className="text-2xl mb-2">📚</div>
+                    <div className="font-semibold">Study Mode</div>
+                    <div className="text-sm opacity-80">Practice with flashcards</div>
+                  </button>
+                  <button
+                    onClick={() => { setCurrentView('study'); startQuiz(); }}
+                    className="bg-gradient-to-br from-navy-500 to-navy-700 text-white p-6 rounded-xl hover:from-navy-600 hover:to-navy-800 transition-all transform hover:scale-105 shadow-lg"
+                  >
+                    <div className="text-2xl mb-2">🧠</div>
+                    <div className="font-semibold">Quiz Mode</div>
+                    <div className="text-sm opacity-80">Test your knowledge</div>
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            {/* Sidebar */}
+            <div className="space-y-6">
+              <div className="bg-white rounded-2xl shadow-xl p-6 text-center">
+                <JamaalCharacter 
+                  message="Keep up the great work! You're becoming a true Word Weaver!" 
+                  size="large"
+                />
+              </div>
+              
+              <div className="bg-white rounded-2xl shadow-xl p-6">
+                <h3 className="text-lg font-semibold text-navy-800 mb-4">Quick Stats</h3>
+                <div className="space-y-3">
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Words Available</span>
+                    <span className="font-semibold text-navy-700">{words.length}</span>
                   </div>
-                  <div className="bg-green-50 rounded-lg p-4 text-center">
-                    <div className="text-2xl font-bold text-green-600">{words.length}</div>
-                    <div className="text-sm text-green-600">Word Cards</div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Badges Earned</span>
+                    <span className="font-semibold text-gold-600">{userProfile?.badges?.length || 0}</span>
                   </div>
-                  <div className="bg-purple-50 rounded-lg p-4 text-center">
-                    <div className="text-2xl font-bold text-purple-600">{adminUsers.filter(u => u.is_teacher).length}</div>
-                    <div className="text-sm text-purple-600">Teachers</div>
-                  </div>
-                  <div className="bg-pink-50 rounded-lg p-4 text-center">
-                    <div className="text-2xl font-bold text-pink-600">100%</div>
-                    <div className="text-sm text-pink-600">Awesome</div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Current Streak</span>
+                    <span className="font-semibold text-green-600">{userProfile?.streak_days || 0} days</span>
                   </div>
                 </div>
               </div>
             </div>
           </div>
         </div>
-      )}
+      </div>
+    );
+  }
 
-      {/* Flashcards View */}
-      {currentView === 'flashcards' && (
-        <div className="max-w-4xl mx-auto p-6">
-          {/* Study Controls */}
-          <div className="bg-white rounded-2xl shadow-lg p-6 mb-6">
-            <div className="flex justify-between items-center">
-              <div className="flex items-center space-x-4">
-                <span className="text-lg font-medium text-gray-700">
-                  Card {currentWordIndex + 1} of {words.length}
-                </span>
-                {quizMode && (
-                  <span className="bg-orange-100 text-orange-800 px-3 py-1 rounded-full text-sm font-medium">
-                    Quiz Mode - Question {quizQuestion + 1}/10 (Score: {quizScore})
-                  </span>
-                )}
+  // Study/Flashcards View - This continues your existing flashcard logic but with new styling
+  if (currentView === 'study') {
+    const currentWord = words[currentWordIndex];
+    
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-navy-900 via-navy-800 to-navy-700">
+        {/* Header */}
+        <header className="bg-white shadow-lg p-4">
+          <div className="max-w-6xl mx-auto flex justify-between items-center">
+            <button
+              onClick={() => setCurrentView('dashboard')}
+              className="flex items-center space-x-2 text-navy-600 hover:text-navy-800"
+            >
+              <span>←</span>
+              <span>Back to Dashboard</span>
+            </button>
+            <div className="text-center">
+              <div className="text-lg font-semibold text-navy-800">
+                Card {currentWordIndex + 1} of {words.length}
               </div>
-              <div className="flex space-x-2">
-                {!quizMode && (
-                  <button
-                    onClick={startQuiz}
-                    className="px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors font-medium"
-                  >
-                    🧠 Start Quiz
-                  </button>
-                )}
-                {quizMode && (
-                  <button
-                    onClick={() => setQuizMode(false)}
-                    className="px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors"
-                  >
-                    Exit Quiz
-                  </button>
-                )}
-              </div>
+              {quizMode && (
+                <div className="text-sm text-orange-600 font-medium">
+                  Quiz Mode - Question {quizQuestion + 1}/10 (Score: {quizScore})
+                </div>
+              )}
+            </div>
+            <div className="flex space-x-2">
+              {!quizMode ? (
+                <button
+                  onClick={startQuiz}
+                  className="px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors font-medium"
+                >
+                  🧠 Start Quiz
+                </button>
+              ) : (
+                <button
+                  onClick={() => setQuizMode(false)}
+                  className="px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors"
+                >
+                  Exit Quiz
+                </button>
+              )}
             </div>
           </div>
+        </header>
 
+        <div className="max-w-4xl mx-auto p-6">
           {/* Flashcard */}
-          <div className="bg-white rounded-3xl shadow-2xl p-8 mb-6 min-h-96 flex flex-col justify-center items-center text-center transform transition-all duration-300 hover:scale-105">
+          <div className="bg-white rounded-3xl shadow-2xl p-12 mb-6 min-h-96 flex flex-col justify-center items-center text-center">
             <div className="mb-6">
-              <span className={`px-4 py-2 rounded-full text-sm font-bold uppercase tracking-wide ${
+              <span className={`px-6 py-2 rounded-full text-sm font-bold uppercase tracking-wide ${
                 currentWord.type === 'prefix' ? 'bg-blue-100 text-blue-800' :
                 currentWord.type === 'suffix' ? 'bg-green-100 text-green-800' :
                 'bg-purple-100 text-purple-800'
               }`}>
-                {currentWord.type} • {currentWord.origin}
+                {currentWord.type} • {currentWord.origin} • {currentWord.difficulty}
               </span>
             </div>
             
-            <div className="text-6xl font-bold text-gray-800 mb-4">
+            <div className="text-7xl font-bold text-navy-800 mb-6">
               {currentWord.root}
             </div>
             
             {showAnswer ? (
-              <div className="space-y-4 animate-fadeIn">
-                <div className="text-2xl text-gray-700 font-semibold">
+              <div className="space-y-6 animate-fadeIn">
+                <div className="text-3xl text-navy-700 font-semibold">
                   "{currentWord.meaning}"
                 </div>
-                <div className="text-lg text-gray-600 max-w-2xl">
+                <div className="text-xl text-gray-600 max-w-2xl">
                   {currentWord.definition}
                 </div>
-                <div className="mt-6">
-                  <h4 className="text-lg font-semibold text-gray-700 mb-2">Examples:</h4>
-                  <div className="flex flex-wrap justify-center gap-2">
+                <div className="mt-8">
+                  <h4 className="text-lg font-semibold text-navy-700 mb-3">Examples:</h4>
+                  <div className="flex flex-wrap justify-center gap-3">
                     {currentWord.examples.map((example, index) => (
-                      <span key={index} className="bg-gray-100 text-gray-700 px-3 py-1 rounded-full text-sm">
+                      <span key={index} className="bg-gold-100 text-navy-700 px-4 py-2 rounded-full font-medium">
                         {example}
                       </span>
                     ))}
                   </div>
                 </div>
+                <div className="text-lg font-semibold text-gold-600">
+                  +{currentWord.points} points available
+                </div>
               </div>
             ) : (
-              <div className="space-y-4">
+              <div className="space-y-6">
                 <div className="text-xl text-gray-500 mb-8">
                   {quizMode ? "What does this mean?" : "Click 'Show Answer' to reveal the meaning"}
                 </div>
                 <button
                   onClick={() => setShowAnswer(true)}
-                  className="px-8 py-3 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-full font-semibold hover:from-purple-600 hover:to-pink-600 transition-all transform hover:scale-105 shadow-lg"
+                  className="px-12 py-4 bg-gradient-to-r from-gold-500 to-gold-600 text-navy-900 rounded-full font-semibold hover:from-gold-600 hover:to-gold-700 transition-all transform hover:scale-105 shadow-lg text-lg"
                 >
                   👁️ Show Answer
                 </button>
@@ -511,7 +742,7 @@ function App() {
           <div className="flex justify-between items-center">
             <button
               onClick={prevCard}
-              className="flex items-center space-x-2 px-6 py-3 bg-white text-gray-700 rounded-xl shadow-lg hover:shadow-xl transition-all hover:scale-105 font-medium"
+              className="flex items-center space-x-2 px-8 py-4 bg-white text-navy-700 rounded-xl shadow-lg hover:shadow-xl transition-all hover:scale-105 font-medium"
             >
               <span>⬅️</span>
               <span>Previous</span>
@@ -523,13 +754,13 @@ function App() {
                   <>
                     <button
                       onClick={() => answerQuiz(false)}
-                      className="px-6 py-3 bg-red-500 text-white rounded-xl hover:bg-red-600 transition-colors font-medium"
+                      className="px-8 py-4 bg-red-500 text-white rounded-xl hover:bg-red-600 transition-colors font-medium"
                     >
                       ❌ Incorrect
                     </button>
                     <button
                       onClick={() => answerQuiz(true)}
-                      className="px-6 py-3 bg-green-500 text-white rounded-xl hover:bg-green-600 transition-colors font-medium"
+                      className="px-8 py-4 bg-green-500 text-white rounded-xl hover:bg-green-600 transition-colors font-medium"
                     >
                       ✅ Correct
                     </button>
@@ -538,15 +769,15 @@ function App() {
                   <>
                     <button
                       onClick={() => { recordStudySession(false); nextCard(); }}
-                      className="px-6 py-3 bg-red-500 text-white rounded-xl hover:bg-red-600 transition-colors font-medium"
+                      className="px-8 py-4 bg-red-500 text-white rounded-xl hover:bg-red-600 transition-colors font-medium"
                     >
-                      😵 Hard
+                      😵 Too Hard
                     </button>
                     <button
                       onClick={() => { recordStudySession(true); nextCard(); }}
-                      className="px-6 py-3 bg-green-500 text-white rounded-xl hover:bg-green-600 transition-colors font-medium"
+                      className="px-8 py-4 bg-green-500 text-white rounded-xl hover:bg-green-600 transition-colors font-medium"
                     >
-                      😊 Easy
+                      😊 Got It!
                     </button>
                   </>
                 )}
@@ -555,16 +786,161 @@ function App() {
 
             <button
               onClick={nextCard}
-              className="flex items-center space-x-2 px-6 py-3 bg-white text-gray-700 rounded-xl shadow-lg hover:shadow-xl transition-all hover:scale-105 font-medium"
+              className="flex items-center space-x-2 px-8 py-4 bg-white text-navy-700 rounded-xl shadow-lg hover:shadow-xl transition-all hover:scale-105 font-medium"
             >
               <span>Next</span>
               <span>➡️</span>
             </button>
           </div>
+
+          {/* Jamaal encouragement */}
+          <div className="mt-8 text-center">
+            <JamaalCharacter 
+              message={showAnswer ? "Great job! Keep weaving those words!" : "You've got this, Word Weaver!"} 
+              size="medium"
+            />
+          </div>
         </div>
-      )}
-    </div>
-  );
+      </div>
+    );
+  }
+
+  // Leaderboard View
+  if (currentView === 'leaderboard') {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-navy-900 via-navy-800 to-navy-700">
+        <header className="bg-white shadow-lg p-4">
+          <div className="max-w-6xl mx-auto flex justify-between items-center">
+            <button
+              onClick={() => setCurrentView('dashboard')}
+              className="flex items-center space-x-2 text-navy-600 hover:text-navy-800"
+            >
+              <span>←</span>
+              <span>Back to Dashboard</span>
+            </button>
+            <h1 className="text-2xl font-bold text-navy-800">🏆 Word Weaver Leaderboard</h1>
+            <div></div>
+          </div>
+        </header>
+
+        <div className="max-w-4xl mx-auto p-6">
+          <div className="bg-white rounded-2xl shadow-xl p-8">
+            <div className="space-y-4">
+              {leaderboard.map((student, index) => (
+                <div key={index} className={`flex items-center space-x-4 p-4 rounded-xl ${
+                  index === 0 ? 'bg-gradient-to-r from-gold-100 to-gold-200 border-2 border-gold-400' :
+                  index === 1 ? 'bg-gray-100 border-gray-300' :
+                  index === 2 ? 'bg-orange-100 border-orange-300' :
+                  'bg-gray-50'
+                }`}>
+                  <div className={`w-12 h-12 rounded-full flex items-center justify-center font-bold text-lg ${
+                    index === 0 ? 'bg-gold-500 text-white' :
+                    index === 1 ? 'bg-gray-400 text-white' :
+                    index === 2 ? 'bg-orange-400 text-white' :
+                    'bg-navy-600 text-white'
+                  }`}>
+                    {index + 1}
+                  </div>
+                  <div className="flex-1">
+                    <div className="font-semibold text-navy-800">
+                      {student.first_name} {student.last_name}
+                    </div>
+                    <div className="text-sm text-gray-600">
+                      Level {student.level} • {student.total_points} points
+                    </div>
+                  </div>
+                  <div className="flex flex-wrap gap-1">
+                    {student.badges.slice(0, 3).map((badge, idx) => (
+                      <Badge key={idx} name={badge} earned={true} />
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Admin View (keep existing admin functionality with new styling)
+  if (currentView === 'admin' && user?.is_teacher) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-navy-900 via-navy-800 to-navy-700">
+        <header className="bg-white shadow-lg p-4">
+          <div className="max-w-6xl mx-auto flex justify-between items-center">
+            <button
+              onClick={() => setCurrentView('dashboard')}
+              className="flex items-center space-x-2 text-navy-600 hover:text-navy-800"
+            >
+              <span>←</span>
+              <span>Back to Dashboard</span>
+            </button>
+            <h1 className="text-2xl font-bold text-navy-800">👩‍🏫 Teacher Dashboard</h1>
+            <div></div>
+          </div>
+        </header>
+
+        <div className="max-w-6xl mx-auto p-6">
+          <div className="bg-white rounded-2xl shadow-xl p-8">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+              <div>
+                <h3 className="text-xl font-semibold text-navy-700 mb-6">📊 Student Overview</h3>
+                <div className="space-y-4">
+                  {adminUsers.filter(u => !u.is_teacher).map((student, index) => (
+                    <div key={student.id} className="bg-gray-50 rounded-xl p-4 border-l-4 border-gold-500">
+                      <div className="flex justify-between items-center">
+                        <div>
+                          <p className="font-semibold text-navy-800">
+                            {student.first_name} {student.last_name}
+                          </p>
+                          <p className="text-sm text-gray-600">{student.email}</p>
+                          <p className="text-sm text-gold-600">
+                            Level {student.level} • {student.total_points} points
+                          </p>
+                        </div>
+                        <div className="text-right">
+                          <div className="flex flex-wrap gap-1">
+                            {student.badges.slice(0, 2).map((badge, idx) => (
+                              <Badge key={idx} name={badge} earned={true} />
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+              
+              <div>
+                <h3 className="text-xl font-semibold text-navy-700 mb-6">📈 Quick Stats</h3>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl p-6 text-center">
+                    <div className="text-3xl font-bold text-blue-600">{adminUsers.filter(u => !u.is_teacher).length}</div>
+                    <div className="text-sm text-blue-600 font-medium">Students</div>
+                  </div>
+                  <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-xl p-6 text-center">
+                    <div className="text-3xl font-bold text-green-600">{words.length}</div>
+                    <div className="text-sm text-green-600 font-medium">Word Cards</div>
+                  </div>
+                  <div className="bg-gradient-to-br from-gold-50 to-gold-100 rounded-xl p-6 text-center">
+                    <div className="text-3xl font-bold text-gold-600">{adminUsers.filter(u => u.is_teacher).length}</div>
+                    <div className="text-sm text-gold-600 font-medium">Teachers</div>
+                  </div>
+                  <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-xl p-6 text-center">
+                    <div className="text-3xl font-bold text-purple-600">100%</div>
+                    <div className="text-sm text-purple-600 font-medium">Engaged</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  return null;
 }
 
 export default App;
