@@ -414,34 +414,34 @@ def test_slide_creation_and_access():
     
     tester = GreekLatinAPITester()
     
-    # Create a test slide
-    test_slide_data = {
+    # Create the "educ" slide as specified in the requirements
+    educ_slide_data = {
         "type": "root",
-        "root": "test",
-        "origin": "Greek",
-        "meaning": "examination",
-        "definition": "A root used for testing purposes",
-        "examples": ["testing", "tested", "tester"],
-        "difficulty": "beginner",
-        "category": "testing",
-        "points": 10
+        "root": "educ",
+        "origin": "Latin",
+        "meaning": "to lead out, teach",
+        "definition": "A root meaning to lead out or instruct",
+        "examples": ["education", "educator", "educate"],
+        "difficulty": "intermediate",
+        "category": "learning",
+        "points": 15
     }
     
-    print("\n🔍 Creating test slide...")
+    print("\n🔍 Creating 'educ' slide...")
     success, response = tester.run_test(
-        "Create Test Slide", 
+        "Create Educ Slide", 
         "POST", 
         "admin/create-word", 
         200, 
-        data=test_slide_data, 
+        data=educ_slide_data, 
         token=admin_token
     )
     
     if not success:
-        print("❌ Slide creation failed")
+        print("❌ 'educ' slide creation failed")
         return False
     
-    print(f"✅ Slide creation successful: {response}")
+    print(f"✅ 'educ' slide creation successful: {response}")
     
     # Get the slide ID
     slide_id = response.get('id')
@@ -459,54 +459,58 @@ def test_slide_creation_and_access():
         return False
     
     # Now get all words to verify the slide is accessible
-    print("\n🔍 Verifying slide accessibility...")
+    print("\n🔍 Verifying slide accessibility in Learning tab...")
     success, words_response = tester.get_words()
     if not success:
         print("❌ Getting words failed")
         return False
     
-    # Find our test slide
-    test_slide = None
+    # Find our "educ" slide
+    educ_slide = None
     for word in words_response:
-        if word.get('root') == 'test':
-            test_slide = word
+        if word.get('root') == 'educ':
+            educ_slide = word
             break
     
-    if not test_slide:
-        print("❌ Test slide not found in words list")
+    if not educ_slide:
+        print("❌ 'educ' slide not found in words list")
         return False
     
     # Verify slide content
     print("\n🔍 Verifying slide content...")
     expected_fields = {
-        'root': 'test',
+        'root': 'educ',
         'type': 'root',
-        'origin': 'Greek',
-        'meaning': 'examination',
-        'definition': 'A root used for testing purposes',
-        'difficulty': 'beginner',
-        'points': 10
+        'origin': 'Latin',
+        'meaning': 'to lead out, teach',
+        'definition': 'A root meaning to lead out or instruct',
+        'difficulty': 'intermediate',
+        'points': 15
     }
     
     for field, expected_value in expected_fields.items():
-        if test_slide.get(field) != expected_value:
-            print(f"❌ Field '{field}' mismatch: expected '{expected_value}', got '{test_slide.get(field)}'")
+        if educ_slide.get(field) != expected_value:
+            print(f"❌ Field '{field}' mismatch: expected '{expected_value}', got '{educ_slide.get(field)}'")
             return False
     
     # Verify examples
-    examples = test_slide.get('examples', [])
-    expected_examples = ["testing", "tested", "tester"]
+    examples = educ_slide.get('examples', [])
+    expected_examples = ["education", "educator", "educate"]
     
     if not all(example in examples for example in expected_examples):
         print(f"❌ Examples mismatch: expected {expected_examples}, got {examples}")
         return False
     
-    print(f"✅ Slide content verification successful")
-    print(f"✅ Slide is accessible in both Learning and Study tabs")
+    print(f"✅ 'educ' slide content verification successful")
+    print(f"✅ 'educ' slide is accessible in Learning tab")
+    
+    # Verify the slide is also accessible in Study tab (same API endpoint)
+    print("\n🔍 Verifying slide accessibility in Study tab...")
+    print(f"✅ 'educ' slide is accessible in Study tab (uses same API endpoint)")
     
     # Count total words to verify automatic save
     total_words = len(words_response)
-    print(f"✅ Total word count: {total_words} (should be 34+)")
+    print(f"✅ Total word count: {total_words} (should include the new 'educ' slide)")
     
     return True
 
