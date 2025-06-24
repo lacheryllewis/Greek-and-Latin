@@ -203,13 +203,58 @@ class GreekLatinAPITester:
         
         return True
         
-    def get_user_profile(self):
-        """Get user profile"""
-        return self.run_test("Get User Profile", "GET", "user/profile", 200, token=self.student_token)
+    def verify_educational_value(self, words):
+        """Verify the educational value of the content"""
+        print("\n🔍 Verifying Educational Value...")
         
-    def get_leaderboard(self):
-        """Get the leaderboard"""
-        return self.run_test("Get Leaderboard", "GET", "leaderboard", 200, token=self.student_token)
+        # Check for specific important roots
+        important_roots = ['graph', 'port', '-ology']
+        found_roots = {}
+        
+        for root in important_roots:
+            for word in words:
+                if word['root'] == root:
+                    found_roots[root] = word
+                    break
+        
+        # Check if all important roots were found
+        for root in important_roots:
+            if root not in found_roots:
+                print(f"❌ Important root '{root}' not found")
+            else:
+                print(f"✅ Found important root '{root}': {found_roots[root]['meaning']}")
+                
+        # Check if examples are relevant
+        for root, word in found_roots.items():
+            print(f"   - Examples for '{root}': {', '.join(word['examples'])}")
+            
+        return len(found_roots) == len(important_roots)
+        
+    def verify_gamification(self, words):
+        """Verify the gamification elements"""
+        print("\n🔍 Verifying Gamification Elements...")
+        
+        # Check point distribution
+        point_values = [word['points'] for word in words]
+        unique_points = set(point_values)
+        
+        if not unique_points.issubset({10, 15, 20}):
+            print(f"❌ Unexpected point values: {unique_points}")
+            return False
+            
+        # Count words by point value
+        point_counts = {}
+        for points in point_values:
+            point_counts[points] = point_counts.get(points, 0) + 1
+            
+        print(f"✅ Point distribution: {point_counts}")
+        
+        # Verify we have a mix of difficulty levels
+        if len(unique_points) < 2:
+            print("❌ Not enough variety in difficulty levels")
+            return False
+            
+        return True
 
     def run_all_tests(self):
         """Run all API tests"""
