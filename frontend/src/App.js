@@ -812,7 +812,7 @@ function App() {
               type="submit"
               className="w-full bg-gradient-to-r from-navy-600 to-navy-700 text-white py-3 rounded-lg font-semibold hover:from-navy-700 hover:to-navy-800 transition-all"
             >
-              Access Teacher Dashboard
+              Access Administrator Dashboard
             </button>
           </form>
           
