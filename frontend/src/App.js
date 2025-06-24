@@ -564,11 +564,14 @@ function App() {
       ]);
       
       if (wordsResponse.data && profileResponse.data) {
+        // Update words for both Learning and Study tabs
         setWords(wordsResponse.data);
-        setStudySets({ all: wordsResponse.data });
+        setStudySets({ all: wordsResponse.data, ...studySets });
         setUserProfile(profileResponse.data);
         setUser(profileResponse.data);
         setCurrentView('dashboard');
+        
+        console.log(`Loaded ${wordsResponse.data.length} words for Learning and Study modes`);
       }
     } catch (error) {
       console.error('Failed to load user data:', error);
