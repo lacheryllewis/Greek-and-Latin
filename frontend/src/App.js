@@ -538,6 +538,7 @@ function App() {
   const [userProfile, setUserProfile] = useState(null);
   const [leaderboard, setLeaderboard] = useState([]);
   const [showSlideCreator, setShowSlideCreator] = useState(false);
+  const [showStudySetCreator, setShowStudySetCreator] = useState(false);
   const [editingSlide, setEditingSlide] = useState(null);
 
   // Auth forms state
