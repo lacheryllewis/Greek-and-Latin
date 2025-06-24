@@ -260,9 +260,9 @@ class GreekLatinAPITester:
         """Get user profile"""
         return self.run_test("Get User Profile", "GET", "user/profile", 200, token=self.student_token)
         
-    def get_leaderboard(self):
-        """Get the leaderboard"""
-        return self.run_test("Get Leaderboard", "GET", "leaderboard", 200, token=self.student_token)
+    def run_all_tests(self):
+        """Run all API tests"""
+        print("🚀 Starting API Tests for Greek & Latin Learning App")
         
         # Test health check
         self.test_health_check()
@@ -288,6 +288,8 @@ class GreekLatinAPITester:
         # Test getting words
         success, words_response = self.get_words()
         if not success:
+            print("❌ Getting words failed, stopping tests")
+            return False
             print("❌ Getting words failed, stopping tests")
             return False
             
