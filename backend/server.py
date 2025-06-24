@@ -459,6 +459,11 @@ class UserCreate(BaseModel):
     first_name: str
     last_name: str
     is_teacher: bool = False
+    # New student profile fields
+    grade: Optional[str] = None
+    school: Optional[str] = None
+    block_number: Optional[str] = None
+    teacher: Optional[str] = None
 
 class UserLogin(BaseModel):
     email: EmailStr
@@ -475,6 +480,11 @@ class User(BaseModel):
     total_points: int = 0
     streak_days: int = 0
     badges: List[str] = []
+    # New student profile fields
+    grade: Optional[str] = None
+    school: Optional[str] = None
+    block_number: Optional[str] = None
+    teacher: Optional[str] = None
 
 class WordCard(BaseModel):
     id: str
