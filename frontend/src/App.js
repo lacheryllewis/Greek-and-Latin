@@ -1113,6 +1113,53 @@ function App() {
                 onChange={(e) => setRegisterData({...registerData, password: e.target.value})}
                 required
               />
+              
+              {/* Student Profile Information */}
+              <div className="border-t pt-4">
+                <h4 className="text-sm font-semibold text-gray-700 mb-3">Student Information</h4>
+                <div className="grid grid-cols-2 gap-3">
+                  <select
+                    className="p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gold-500 focus:border-transparent"
+                    value={registerData.grade}
+                    onChange={(e) => setRegisterData({...registerData, grade: e.target.value})}
+                    required
+                  >
+                    <option value="">Select Grade</option>
+                    <option value="6th">6th Grade</option>
+                    <option value="7th">7th Grade</option>
+                    <option value="8th">8th Grade</option>
+                    <option value="9th">9th Grade</option>
+                    <option value="10th">10th Grade</option>
+                    <option value="11th">11th Grade</option>
+                    <option value="12th">12th Grade</option>
+                  </select>
+                  <input
+                    type="text"
+                    placeholder="Block Number"
+                    className="p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gold-500 focus:border-transparent"
+                    value={registerData.block_number}
+                    onChange={(e) => setRegisterData({...registerData, block_number: e.target.value})}
+                    required
+                  />
+                </div>
+                <input
+                  type="text"
+                  placeholder="School Name"
+                  className="w-full mt-3 p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gold-500 focus:border-transparent"
+                  value={registerData.school}
+                  onChange={(e) => setRegisterData({...registerData, school: e.target.value})}
+                  required
+                />
+                <input
+                  type="text"
+                  placeholder="Teacher Name"
+                  className="w-full mt-3 p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gold-500 focus:border-transparent"
+                  value={registerData.teacher}
+                  onChange={(e) => setRegisterData({...registerData, teacher: e.target.value})}
+                  required
+                />
+              </div>
+              
               <button 
                 type="submit"
                 className="w-full bg-gradient-to-r from-gold-500 to-gold-600 text-navy-900 py-3 rounded-lg font-semibold hover:from-gold-600 hover:to-gold-700 transition-all"
