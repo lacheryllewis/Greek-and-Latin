@@ -1939,38 +1939,94 @@ function App() {
           <div className="bg-white rounded-2xl shadow-xl p-8">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
               <div>
-                <h3 className="text-xl font-semibold text-navy-700 mb-6">📊 Student Overview</h3>
+                <h3 className="text-xl font-semibold text-navy-700 mb-6">👥 Student Profiles</h3>
                 <div className="space-y-4">
                   {adminUsers.filter(u => !u.is_teacher).length > 0 ? (
                     adminUsers.filter(u => !u.is_teacher).map((student, index) => (
-                      <div key={student.id} className="bg-gray-50 rounded-xl p-4 border-l-4 border-gold-500">
-                        <div className="flex justify-between items-center">
+                      <div key={student.id} className="bg-white rounded-xl p-6 shadow-lg border-l-4 border-gold-500">
+                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                          {/* Basic Information */}
                           <div>
-                            <p className="font-semibold text-navy-800">
-                              {student.first_name} {student.last_name}
-                            </p>
-                            <p className="text-sm text-gray-600">{student.email}</p>
-                            <p className="text-sm text-gold-600">
-                              Level {student.level || 1} • {student.total_points || 0} points
-                            </p>
-                          </div>
-                          <div className="text-right">
-                            <div className="flex flex-wrap gap-1">
-                              {(student.badges || []).slice(0, 2).map((badge, idx) => (
-                                <Badge key={idx} name={badge} earned={true} />
-                              ))}
-                              {(student.badges || []).length === 0 && (
-                                <span className="text-xs text-gray-400">No badges yet</span>
-                              )}
+                            <div className="flex items-center space-x-3 mb-4">
+                              <div className="w-12 h-12 bg-gradient-to-br from-gold-400 to-gold-600 rounded-full flex items-center justify-center text-white font-bold text-lg">
+                                {student.first_name[0]}{student.last_name[0]}
+                              </div>
+                              <div>
+                                <h4 className="font-bold text-lg text-navy-800">
+                                  {student.first_name} {student.last_name}
+                                </h4>
+                                <p className="text-sm text-gray-600">{student.email}</p>
+                              </div>
                             </div>
+                            
+                            <div className="space-y-2">
+                              <div className="flex justify-between">
+                                <span className="text-sm font-medium text-gray-600">Grade:</span>
+                                <span className="text-sm text-navy-700 font-semibold">{student.grade || 'Not specified'}</span>
+                              </div>
+                              <div className="flex justify-between">
+                                <span className="text-sm font-medium text-gray-600">School:</span>
+                                <span className="text-sm text-navy-700 font-semibold">{student.school || 'Not specified'}</span>
+                              </div>
+                              <div className="flex justify-between">
+                                <span className="text-sm font-medium text-gray-600">Block:</span>
+                                <span className="text-sm text-navy-700 font-semibold">{student.block_number || 'Not specified'}</span>
+                              </div>
+                              <div className="flex justify-between">
+                                <span className="text-sm font-medium text-gray-600">Teacher:</span>
+                                <span className="text-sm text-navy-700 font-semibold">{student.teacher || 'Not specified'}</span>
+                              </div>
+                            </div>
+                          </div>
+                          
+                          {/* Academic Progress */}
+                          <div>
+                            <h5 className="font-semibold text-navy-700 mb-3">📈 Academic Progress</h5>
+                            <div className="grid grid-cols-2 gap-3 mb-4">
+                              <div className="bg-blue-50 rounded-lg p-3 text-center">
+                                <div className="text-xl font-bold text-blue-600">{student.level || 1}</div>
+                                <div className="text-xs text-blue-600">Level</div>
+                              </div>
+                              <div className="bg-green-50 rounded-lg p-3 text-center">
+                                <div className="text-xl font-bold text-green-600">{student.total_points || 0}</div>
+                                <div className="text-xs text-green-600">Points</div>
+                              </div>
+                            </div>
+                            
+                            <div className="space-y-2">
+                              <div className="flex justify-between">
+                                <span className="text-sm font-medium text-gray-600">Streak:</span>
+                                <span className="text-sm text-navy-700 font-semibold">{student.streak_days || 0} days</span>
+                              </div>
+                              <div className="flex justify-between">
+                                <span className="text-sm font-medium text-gray-600">Joined:</span>
+                                <span className="text-sm text-navy-700 font-semibold">
+                                  {new Date(student.created_at).toLocaleDateString()}
+                                </span>
+                              </div>
+                            </div>
+                            
+                            {student.badges && student.badges.length > 0 && (
+                              <div className="mt-4">
+                                <h6 className="text-xs font-semibold text-gray-600 mb-2">BADGES EARNED:</h6>
+                                <div className="flex flex-wrap gap-1">
+                                  {student.badges.slice(0, 3).map((badge, idx) => (
+                                    <Badge key={idx} name={badge} earned={true} />
+                                  ))}
+                                  {student.badges.length > 3 && (
+                                    <span className="text-xs text-gray-500">+{student.badges.length - 3} more</span>
+                                  )}
+                                </div>
+                              </div>
+                            )}
                           </div>
                         </div>
                       </div>
                     ))
                   ) : (
-                    <div className="text-center py-8 text-gray-500">
-                      <p>No students registered yet.</p>
-                      <p className="text-sm mt-2">Students will appear here after they sign up.</p>
+                    <div className="text-center py-8 text-gray-500 bg-white rounded-xl">
+                      <p className="text-lg">No students registered yet.</p>
+                      <p className="text-sm mt-2">Students will appear here after they sign up with complete profile information.</p>
                     </div>
                   )}
                 </div>
