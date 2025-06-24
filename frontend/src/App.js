@@ -1069,7 +1069,11 @@ function App() {
                 </button>
                 {user?.is_teacher && (
                   <button
-                    onClick={() => { setCurrentView('admin'); loadAdminData(); }}
+                    onClick={() => { 
+                      console.log('Admin button clicked, user:', user);
+                      setCurrentView('admin'); 
+                      loadAdminData(); 
+                    }}
                     className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
                   >
                     👩‍💼 Admin
