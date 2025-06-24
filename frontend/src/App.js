@@ -826,6 +826,58 @@ function App() {
     }
   };
 
+  const loadBackups = async () => {
+    try {
+      const response = await axios.get(`${API_BASE_URL}/api/admin/backups`);
+      setBackups(response.data);
+    } catch (error) {
+      console.error('Failed to load backups:', error);
+    }
+  };
+
+  const createBackup = async () => {
+    try {
+      const response = await axios.post(`${API_BASE_URL}/api/admin/create-backup`);
+      alert(`✅ Backup Created Successfully!\n\nWord Count: ${response.data.word_count}\nTimestamp: ${response.data.timestamp}`);
+      loadBackups(); // Refresh backup list
+    } catch (error) {
+      alert('Failed to create backup: ' + (error.response?.data?.detail || 'Unknown error'));
+    }
+  };
+
+  const restoreBackup = async (collectionName, wordCount) => {
+    const confirmed = window.confirm(
+      `🔄 RESTORE BACKUP CONFIRMATION\n\n` +
+      `Are you sure you want to restore this backup?\n\n` +
+      `This will replace all current word cards (${words.length}) with the backup (${wordCount} words).\n\n` +
+      `Your current data will be automatically backed up before restoration.`
+    );
+
+    if (!confirmed) return;
+
+    try {
+      const response = await axios.post(`${API_BASE_URL}/api/admin/restore-backup`, {
+        collection_name: collectionName
+      });
+      
+      // Refresh word data after restore
+      const wordsResponse = await axios.get(`${API_BASE_URL}/api/words`);
+      setWords(wordsResponse.data);
+      setStudySets(prev => ({ ...prev, all: wordsResponse.data }));
+      
+      alert(
+        `✅ Backup Restored Successfully!\n\n` +
+        `Restored: ${response.data.word_count} word cards\n` +
+        `Pre-restore backup created: ${response.data.pre_restore_backup}`
+      );
+      
+      loadBackups(); // Refresh backup list
+      setShowBackupManager(false);
+    } catch (error) {
+      alert('Failed to restore backup: ' + (error.response?.data?.detail || 'Unknown error'));
+    }
+  };
+
   const handleCreateStudySet = async (studySetData) => {
     try {
       console.log('Creating study set:', studySetData);
