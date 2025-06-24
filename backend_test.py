@@ -449,6 +449,15 @@ def test_slide_creation_and_access():
         print("❌ No slide ID returned")
         return False
     
+    # Register a student to verify slide accessibility
+    if not tester.register_student():
+        print("❌ Student registration failed, stopping test")
+        return False
+        
+    if not tester.login_student():
+        print("❌ Student login failed, stopping test")
+        return False
+    
     # Now get all words to verify the slide is accessible
     print("\n🔍 Verifying slide accessibility...")
     success, words_response = tester.get_words()
