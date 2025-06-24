@@ -1373,6 +1373,12 @@ function App() {
   // Study/Flashcards View
   if (currentView === 'study') {
     const currentWords = getCurrentWords();
+    
+    // Ensure valid index
+    if (currentWords.length > 0 && currentWordIndex >= currentWords.length) {
+      setCurrentWordIndex(0);
+    }
+    
     const currentWord = currentWords[currentWordIndex];
     
     return (
