@@ -794,7 +794,7 @@ function App() {
           <form onSubmit={handleLogin} className="space-y-4">
             <input
               type="email"
-              placeholder="Teacher Email"
+              placeholder="Administrator Email"
               className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gold-500 focus:border-transparent"
               value={loginData.email}
               onChange={(e) => setLoginData({...loginData, email: e.target.value})}
