@@ -1217,6 +1217,12 @@ function App() {
   // Learning View (New format matching uploaded image)
   if (currentView === 'learning') {
     const currentWords = getCurrentWords();
+    
+    // Ensure valid index
+    if (currentWords.length > 0 && currentWordIndex >= currentWords.length) {
+      setCurrentWordIndex(0);
+    }
+    
     const currentWord = currentWords[currentWordIndex];
     
     return (
