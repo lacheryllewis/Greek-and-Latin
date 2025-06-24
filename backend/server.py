@@ -739,7 +739,11 @@ async def get_user_profile(current_user: dict = Depends(get_current_user)):
         "level": level,
         "total_points": current_user.get("total_points", 0),
         "streak_days": current_user.get("streak_days", 0),
-        "badges": badges
+        "badges": badges,
+        "grade": current_user.get("grade"),
+        "school": current_user.get("school"),
+        "block_number": current_user.get("block_number"),
+        "teacher": current_user.get("teacher")
     }
 
 @app.post("/api/study-session")
