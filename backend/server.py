@@ -700,6 +700,7 @@ async def get_user_profile(current_user: dict = Depends(get_current_user)):
         "first_name": current_user["first_name"],
         "last_name": current_user["last_name"],
         "email": current_user["email"],
+        "is_teacher": current_user.get("is_teacher", False),
         "level": level,
         "total_points": current_user.get("total_points", 0),
         "streak_days": current_user.get("streak_days", 0),
