@@ -698,7 +698,7 @@ function App() {
             </div>
             
             <div className="text-7xl font-bold text-navy-800 mb-6">
-              {currentWord.root}
+              {currentWord?.root || 'Loading...'}
             </div>
             
             {showAnswer ? (
