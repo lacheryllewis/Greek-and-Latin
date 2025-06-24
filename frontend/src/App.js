@@ -565,13 +565,24 @@ function App() {
       
       if (wordsResponse.data && profileResponse.data) {
         // Update words for both Learning and Study tabs
+        console.log('Setting words:', wordsResponse.data.length);
         setWords(wordsResponse.data);
-        setStudySets({ all: wordsResponse.data, ...studySets });
+        
+        // Ensure study sets are properly updated with all words
+        const updatedStudySets = { 
+          all: wordsResponse.data,
+          ...Object.fromEntries(
+            Object.entries(studySets).filter(([key]) => key !== 'all')
+          )
+        };
+        setStudySets(updatedStudySets);
+        
         setUserProfile(profileResponse.data);
         setUser(profileResponse.data);
         setCurrentView('dashboard');
         
         console.log(`Loaded ${wordsResponse.data.length} words for Learning and Study modes`);
+        console.log('Updated study sets:', updatedStudySets);
       }
     } catch (error) {
       console.error('Failed to load user data:', error);
