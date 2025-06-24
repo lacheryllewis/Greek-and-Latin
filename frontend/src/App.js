@@ -1751,32 +1751,66 @@ function App() {
                 </div>
                 
                 <div className="space-y-3">
-                  <h4 className="font-semibold text-navy-700">Recent Slides</h4>
-                  <div className="max-h-40 overflow-y-auto space-y-2">
-                    {words.slice(0, 5).map((word, index) => (
-                      <div key={word.id} className="flex justify-between items-center p-2 bg-gray-50 rounded">
-                        <span className="text-sm font-medium">{word.root}</span>
-                        <button
-                          onClick={() => {
-                            setEditingSlide(word);
-                            setShowSlideCreator(true);
-                          }}
-                          className="text-xs text-blue-600 hover:text-blue-800"
-                        >
-                          Edit
-                        </button>
+                  <div className="flex justify-between items-center">
+                    <h4 className="font-semibold text-navy-700">All Slides ({words.length})</h4>
+                    <div className="text-sm text-gray-500">
+                      Edit or delete any slide below
+                    </div>
+                  </div>
+                  <div className="max-h-64 overflow-y-auto space-y-2 border rounded-lg p-3 bg-gray-50">
+                    {words.map((word, index) => (
+                      <div key={word.id} className="flex justify-between items-center p-3 bg-white rounded-lg border hover:shadow-sm transition-all">
+                        <div className="flex-1">
+                          <div className="flex items-center space-x-2">
+                            <span className={`px-2 py-1 rounded text-xs font-bold ${
+                              word.type === 'prefix' ? 'bg-blue-100 text-blue-800' :
+                              word.type === 'suffix' ? 'bg-green-100 text-green-800' :
+                              'bg-purple-100 text-purple-800'
+                            }`}>
+                              {word.type}
+                            </span>
+                            <span className="font-bold text-navy-800">{word.root}</span>
+                            <span className="text-sm text-gray-600">({word.origin})</span>
+                          </div>
+                          <div className="text-sm text-gray-600 mt-1">"{word.meaning}"</div>
+                          <div className="text-xs text-gray-500">{word.difficulty} • {word.points} pts</div>
+                        </div>
+                        <div className="flex space-x-2">
+                          <button
+                            onClick={() => {
+                              setEditingSlide(word);
+                              setShowSlideCreator(true);
+                            }}
+                            className="px-3 py-1 bg-blue-500 text-white text-xs rounded hover:bg-blue-600 transition-colors"
+                          >
+                            ✏️ Edit
+                          </button>
+                          <button
+                            onClick={() => handleDeleteSlide(word.id, word.root)}
+                            className="px-3 py-1 bg-red-500 text-white text-xs rounded hover:bg-red-600 transition-colors"
+                          >
+                            🗑️ Delete
+                          </button>
+                        </div>
                       </div>
                     ))}
+                    {words.length === 0 && (
+                      <div className="text-center py-8 text-gray-500">
+                        <p>No slides created yet.</p>
+                        <p className="text-sm mt-2">Click "Create Slide" to add your first slide.</p>
+                      </div>
+                    )}
                   </div>
                 </div>
                 
                 <div className="mt-6 p-4 bg-navy-50 rounded-xl">
-                  <h4 className="font-semibold text-navy-700 mb-2">💡 Teaching Tips</h4>
+                  <h4 className="font-semibold text-navy-700 mb-2">💡 Content Management Tips</h4>
                   <ul className="text-sm text-navy-600 space-y-1">
                     <li>• Create custom study sets for targeted learning</li>
                     <li>• Use multiple-choice mode for guided practice</li>
                     <li>• Upload visual aids to enhance comprehension</li>
-                    <li>• Monitor student progress through individual sessions</li>
+                    <li>• Edit slides anytime to update content or fix errors</li>
+                    <li>• Delete outdated or duplicate slides to keep content clean</li>
                   </ul>
                 </div>
               </div>
