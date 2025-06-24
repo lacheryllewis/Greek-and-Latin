@@ -386,6 +386,142 @@ const SlideCreator = ({ onSave, onCancel, editingSlide = null }) => {
   );
 };
 
+// Study Set Creator Component
+const StudySetCreator = ({ words, onSave, onCancel }) => {
+  const [setName, setSetName] = useState('');
+  const [setDescription, setSetDescription] = useState('');
+  const [selectedWords, setSelectedWords] = useState([]);
+
+  const handleWordToggle = (wordId) => {
+    setSelectedWords(prev => 
+      prev.includes(wordId) 
+        ? prev.filter(id => id !== wordId)
+        : [...prev, wordId]
+    );
+  };
+
+  const handleSave = () => {
+    if (!setName.trim()) {
+      alert('Please enter a study set name');
+      return;
+    }
+    if (selectedWords.length === 0) {
+      alert('Please select at least one word');
+      return;
+    }
+    
+    onSave({
+      name: setName,
+      description: setDescription,
+      word_ids: selectedWords
+    });
+  };
+
+  return (
+    <div className="bg-white rounded-2xl shadow-xl p-8 max-w-6xl mx-auto">
+      <h2 className="text-2xl font-bold text-navy-800 mb-6">Create Custom Study Set</h2>
+      
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="lg:col-span-1 space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-navy-700 mb-2">
+              Study Set Name *
+            </label>
+            <input
+              type="text"
+              value={setName}
+              onChange={(e) => setSetName(e.target.value)}
+              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gold-500"
+              placeholder="e.g., Greek Roots - Week 1"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-navy-700 mb-2">
+              Description
+            </label>
+            <textarea
+              value={setDescription}
+              onChange={(e) => setSetDescription(e.target.value)}
+              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gold-500"
+              rows="3"
+              placeholder="Optional description for this study set..."
+            />
+          </div>
+
+          <div className="bg-gray-50 rounded-lg p-4">
+            <h3 className="font-semibold text-navy-700 mb-2">Selected Words</h3>
+            <p className="text-sm text-gray-600 mb-2">{selectedWords.length} words selected</p>
+            <div className="max-h-32 overflow-y-auto">
+              {selectedWords.map(wordId => {
+                const word = words.find(w => w.id === wordId);
+                return word ? (
+                  <div key={wordId} className="text-xs bg-gold-100 text-navy-700 px-2 py-1 rounded mb-1">
+                    {word.root}
+                  </div>
+                ) : null;
+              })}
+            </div>
+          </div>
+        </div>
+
+        <div className="lg:col-span-2">
+          <h3 className="text-lg font-semibold text-navy-700 mb-4">
+            Select Words for Study Set ({words.length} available)
+          </h3>
+          <div className="max-h-96 overflow-y-auto grid grid-cols-1 md:grid-cols-2 gap-3">
+            {words.map((word) => (
+              <div
+                key={word.id}
+                onClick={() => handleWordToggle(word.id)}
+                className={`p-3 border-2 rounded-lg cursor-pointer transition-all ${
+                  selectedWords.includes(word.id)
+                    ? 'border-gold-500 bg-gold-50'
+                    : 'border-gray-200 hover:border-gold-300 hover:bg-gold-25'
+                }`}
+              >
+                <div className="flex justify-between items-start">
+                  <div>
+                    <div className="font-bold text-navy-800">{word.root}</div>
+                    <div className="text-sm text-gray-600">
+                      {word.type} • {word.origin} • {word.difficulty}
+                    </div>
+                    <div className="text-sm text-navy-600">"{word.meaning}"</div>
+                  </div>
+                  <div className={`w-5 h-5 rounded border-2 flex items-center justify-center ${
+                    selectedWords.includes(word.id)
+                      ? 'border-gold-500 bg-gold-500'
+                      : 'border-gray-300'
+                  }`}>
+                    {selectedWords.includes(word.id) && (
+                      <span className="text-white text-xs">✓</span>
+                    )}
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      <div className="flex justify-end space-x-4 mt-6">
+        <button
+          onClick={onCancel}
+          className="px-6 py-3 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors"
+        >
+          Cancel
+        </button>
+        <button
+          onClick={handleSave}
+          className="px-6 py-3 bg-gradient-to-r from-gold-500 to-gold-600 text-navy-900 rounded-lg font-semibold hover:from-gold-600 hover:to-gold-700 transition-all"
+        >
+          Create Study Set
+        </button>
+      </div>
+    </div>
+  );
+};
+
 function App() {
   const [currentView, setCurrentView] = useState('welcome');
   const [user, setUser] = useState(null);
