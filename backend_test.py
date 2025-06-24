@@ -358,10 +358,59 @@ class GreekLatinAPITester:
         
         return self.tests_passed == self.tests_run
 
-def main():
+def test_admin_login_specific():
+    """Test specifically for admin login with provided credentials"""
+    print("\n🔍 Testing Admin Login with Specific Credentials...")
     tester = GreekLatinAPITester()
-    success = tester.run_all_tests()
-    return 0 if success else 1
+    
+    # Test health check first
+    success, _ = tester.test_health_check()
+    if not success:
+        print("❌ Health check failed, stopping tests")
+        return False
+    
+    # Login with admin credentials
+    admin_email = "admin@empoweru.com"
+    admin_password = "EmpowerU2024!"
+    
+    data = {
+        "email": admin_email,
+        "password": admin_password
+    }
+    success, response = tester.run_test("Admin Login", "POST", "login", 200, data)
+    
+    if not success or 'access_token' not in response:
+        print("❌ Admin login failed")
+        return False
+    
+    # Check if user is marked as admin/teacher
+    user_data = response.get('user', {})
+    is_admin = user_data.get('is_teacher', False)
+    
+    print(f"Admin login successful: {success}")
+    print(f"Is admin user: {is_admin}")
+    print(f"User data: {json.dumps(user_data, indent=2)}")
+    
+    # Test admin-only endpoint
+    admin_token = response['access_token']
+    success, users = tester.run_test("Get Admin Users", "GET", "admin/users", 200, token=admin_token)
+    
+    if not success:
+        print("❌ Admin endpoint access failed")
+        return False
+    
+    print(f"✅ Admin login and endpoint access successful")
+    return True
+
+def main():
+    # Run specific admin login test
+    admin_test_success = test_admin_login_specific()
+    
+    # Run all other tests
+    tester = GreekLatinAPITester()
+    all_tests_success = tester.run_all_tests()
+    
+    return 0 if (admin_test_success and all_tests_success) else 1
 
 if __name__ == "__main__":
     main()
