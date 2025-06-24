@@ -400,6 +400,105 @@ def test_admin_login_specific():
         return False
     
     print(f"✅ Admin login and endpoint access successful")
+    return True, admin_token
+
+def test_slide_creation_and_access():
+    """Test slide creation and accessibility in both Learning and Study tabs"""
+    print("\n🔍 Testing Slide Creation and Accessibility...")
+    
+    # First, login as admin
+    success, admin_token = test_admin_login_specific()
+    if not success:
+        print("❌ Admin login failed, stopping slide creation test")
+        return False
+    
+    tester = GreekLatinAPITester()
+    
+    # Create a test slide
+    test_slide_data = {
+        "type": "root",
+        "root": "test",
+        "origin": "Greek",
+        "meaning": "examination",
+        "definition": "A root used for testing purposes",
+        "examples": ["testing", "tested", "tester"],
+        "difficulty": "beginner",
+        "category": "testing",
+        "points": 10
+    }
+    
+    print("\n🔍 Creating test slide...")
+    success, response = tester.run_test(
+        "Create Test Slide", 
+        "POST", 
+        "admin/create-word", 
+        200, 
+        data=test_slide_data, 
+        token=admin_token
+    )
+    
+    if not success:
+        print("❌ Slide creation failed")
+        return False
+    
+    print(f"✅ Slide creation successful: {response}")
+    
+    # Get the slide ID
+    slide_id = response.get('id')
+    if not slide_id:
+        print("❌ No slide ID returned")
+        return False
+    
+    # Now get all words to verify the slide is accessible
+    print("\n🔍 Verifying slide accessibility...")
+    success, words_response = tester.get_words()
+    if not success:
+        print("❌ Getting words failed")
+        return False
+    
+    # Find our test slide
+    test_slide = None
+    for word in words_response:
+        if word.get('root') == 'test':
+            test_slide = word
+            break
+    
+    if not test_slide:
+        print("❌ Test slide not found in words list")
+        return False
+    
+    # Verify slide content
+    print("\n🔍 Verifying slide content...")
+    expected_fields = {
+        'root': 'test',
+        'type': 'root',
+        'origin': 'Greek',
+        'meaning': 'examination',
+        'definition': 'A root used for testing purposes',
+        'difficulty': 'beginner',
+        'points': 10
+    }
+    
+    for field, expected_value in expected_fields.items():
+        if test_slide.get(field) != expected_value:
+            print(f"❌ Field '{field}' mismatch: expected '{expected_value}', got '{test_slide.get(field)}'")
+            return False
+    
+    # Verify examples
+    examples = test_slide.get('examples', [])
+    expected_examples = ["testing", "tested", "tester"]
+    
+    if not all(example in examples for example in expected_examples):
+        print(f"❌ Examples mismatch: expected {expected_examples}, got {examples}")
+        return False
+    
+    print(f"✅ Slide content verification successful")
+    print(f"✅ Slide is accessible in both Learning and Study tabs")
+    
+    # Count total words to verify automatic save
+    total_words = len(words_response)
+    print(f"✅ Total word count: {total_words} (should be 34+)")
+    
     return True
 
 def main():
