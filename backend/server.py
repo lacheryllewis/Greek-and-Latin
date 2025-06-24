@@ -572,11 +572,10 @@ async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(s
 # Initialize sample content and admin user on startup
 @app.on_event("startup")
 async def startup_event():
-    # Initialize sample words if collection is empty
-    count = await db.words.count_documents({})
-    if count == 0:
-        await db.words.insert_many(SAMPLE_CONTENT)
-        logger.info("Initialized sample Greek and Latin content")
+    # Force refresh of words content with new data
+    await db.words.delete_many({})  # Clear existing content
+    await db.words.insert_many(SAMPLE_CONTENT)
+    logger.info(f"Initialized {len(SAMPLE_CONTENT)} Greek and Latin word elements")
     
     # Create admin user if doesn't exist
     admin_exists = await db.users.find_one({"email": "admin@empoweru.com"})
