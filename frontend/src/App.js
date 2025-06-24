@@ -644,7 +644,7 @@ function App() {
                 onClick={() => setCurrentView('teacher-login')}
                 className="w-full bg-transparent border-2 border-navy-200 text-navy-600 py-3 rounded-xl font-medium text-sm hover:bg-navy-50 transition-all"
               >
-                👩‍🏫 Teacher? Click here
+                👩‍🏫 Administrator? Click here
               </button>
             </div>
             
