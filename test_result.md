@@ -199,9 +199,8 @@ metadata:
 
 test_plan:
   current_focus:
-    - "Student CRUD Operations"
-    - "Authentication & Authorization"
-    - "Data Integrity"
+    - "Admin Dashboard Alphabetical Sorting"
+    - "Admin Dashboard Printable View"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
