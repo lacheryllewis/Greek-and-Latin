@@ -1771,6 +1771,15 @@ function App() {
     );
   };
 
+  // Login Code Manager View
+  if (showLoginCodeManager) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-navy-900 via-navy-800 to-navy-700 p-6">
+        <LoginCodeManager />
+      </div>
+    );
+  }
+
   // Backup Manager View
   if (showBackupManager) {
     return (
