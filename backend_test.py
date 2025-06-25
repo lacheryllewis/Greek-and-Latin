@@ -1482,7 +1482,7 @@ def test_login_code_management():
         return False
     
     # 4. Validate the test login code VBNFTPUV
-    print("\n🔍 Validating test login code VBNFTPUV...")
+    print("\n🔍 Validating test login code...")
     
     # If VBNFTPUV doesn't exist, use our new code
     test_code = 'VBNFTPUV' if vbnftpuv_exists else login_code_value
@@ -1563,7 +1563,7 @@ def test_login_code_management():
     # Use our new code ID
     toggle_code_id = login_code_id
     
-    success, toggle_response = tester.run_test(
+    toggle_success, toggle_response = tester.run_test(
         "Toggle Login Code", 
         "PUT", 
         f"admin/login-code/{toggle_code_id}/toggle", 
@@ -1571,7 +1571,7 @@ def test_login_code_management():
         token=admin_token
     )
     
-    if not success:
+    if not toggle_success:
         print("❌ Login code toggle failed")
         return False
     
@@ -1591,7 +1591,7 @@ def test_login_code_management():
     # Use our new code ID
     delete_code_id = login_code_id
     
-    success, delete_response = tester.run_test(
+    delete_success, delete_response = tester.run_test(
         "Delete Login Code", 
         "DELETE", 
         f"admin/login-code/{delete_code_id}", 
@@ -1599,7 +1599,7 @@ def test_login_code_management():
         token=admin_token
     )
     
-    if not success:
+    if not delete_success:
         print("❌ Login code deletion failed")
         return False
     
