@@ -1656,9 +1656,10 @@ function App() {
                     <input
                       type="text"
                       required
-                      className="w-full p-3 border-2 border-gold-300 rounded-lg focus:ring-2 focus:ring-gold-500 focus:border-gold-500 bg-white"
+                      autoComplete="off"
+                      className="w-full p-3 border-2 border-gold-300 rounded-lg focus:ring-2 focus:ring-gold-500 focus:border-gold-500 bg-white transition-colors"
                       value={newCodeData.class_name}
-                      onChange={(e) => setNewCodeData({...newCodeData, class_name: e.target.value})}
+                      onChange={(e) => setNewCodeData(prev => ({...prev, class_name: e.target.value}))}
                       placeholder="e.g., English 10, Greek & Latin Academy"
                     />
                   </div>
@@ -1666,9 +1667,10 @@ function App() {
                     <label className="block text-sm font-medium text-navy-700 mb-2">Block Number</label>
                     <input
                       type="text"
-                      className="w-full p-3 border-2 border-gold-300 rounded-lg focus:ring-2 focus:ring-gold-500 focus:border-gold-500 bg-white"
+                      autoComplete="off"
+                      className="w-full p-3 border-2 border-gold-300 rounded-lg focus:ring-2 focus:ring-gold-500 focus:border-gold-500 bg-white transition-colors"
                       value={newCodeData.block_number}
-                      onChange={(e) => setNewCodeData({...newCodeData, block_number: e.target.value})}
+                      onChange={(e) => setNewCodeData(prev => ({...prev, block_number: e.target.value}))}
                       placeholder="e.g., Block A, Period 3"
                     />
                   </div>
@@ -1676,18 +1678,19 @@ function App() {
                     <label className="block text-sm font-medium text-navy-700 mb-2">School</label>
                     <input
                       type="text"
-                      className="w-full p-3 border-2 border-gold-300 rounded-lg focus:ring-2 focus:ring-gold-500 focus:border-gold-500 bg-white"
+                      autoComplete="off"
+                      className="w-full p-3 border-2 border-gold-300 rounded-lg focus:ring-2 focus:ring-gold-500 focus:border-gold-500 bg-white transition-colors"
                       value={newCodeData.school}
-                      onChange={(e) => setNewCodeData({...newCodeData, school: e.target.value})}
+                      onChange={(e) => setNewCodeData(prev => ({...prev, school: e.target.value}))}
                       placeholder="e.g., Lincoln High School"
                     />
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-navy-700 mb-2">Grade Level</label>
                     <select
-                      className="w-full p-3 border-2 border-gold-300 rounded-lg focus:ring-2 focus:ring-gold-500 focus:border-gold-500 bg-white"
+                      className="w-full p-3 border-2 border-gold-300 rounded-lg focus:ring-2 focus:ring-gold-500 focus:border-gold-500 bg-white transition-colors cursor-pointer"
                       value={newCodeData.grade}
-                      onChange={(e) => setNewCodeData({...newCodeData, grade: e.target.value})}
+                      onChange={(e) => setNewCodeData(prev => ({...prev, grade: e.target.value}))}
                     >
                       <option value="">Select Grade</option>
                       <option value="6th">6th Grade</option>
@@ -1705,9 +1708,15 @@ function App() {
                       type="number"
                       min="1"
                       max="1000"
-                      className="w-full p-3 border-2 border-gold-300 rounded-lg focus:ring-2 focus:ring-gold-500 focus:border-gold-500 bg-white"
+                      step="1"
+                      autoComplete="off"
+                      className="w-full p-3 border-2 border-gold-300 rounded-lg focus:ring-2 focus:ring-gold-500 focus:border-gold-500 bg-white transition-colors"
                       value={newCodeData.max_uses}
-                      onChange={(e) => setNewCodeData({...newCodeData, max_uses: parseInt(e.target.value) || 50})}
+                      onChange={(e) => {
+                        const value = e.target.value;
+                        setNewCodeData(prev => ({...prev, max_uses: value === '' ? '' : Number(value)}));
+                      }}
+                      placeholder="50"
                     />
                   </div>
                   <div>
@@ -1716,16 +1725,22 @@ function App() {
                       type="number"
                       min="1"
                       max="365"
-                      className="w-full p-3 border-2 border-gold-300 rounded-lg focus:ring-2 focus:ring-gold-500 focus:border-gold-500 bg-white"
+                      step="1"
+                      autoComplete="off"
+                      className="w-full p-3 border-2 border-gold-300 rounded-lg focus:ring-2 focus:ring-gold-500 focus:border-gold-500 bg-white transition-colors"
                       value={newCodeData.expires_in_days}
-                      onChange={(e) => setNewCodeData({...newCodeData, expires_in_days: parseInt(e.target.value) || 30})}
+                      onChange={(e) => {
+                        const value = e.target.value;
+                        setNewCodeData(prev => ({...prev, expires_in_days: value === '' ? '' : Number(value)}));
+                      }}
+                      placeholder="30"
                     />
                   </div>
                 </div>
                 <div className="pt-4">
                   <button
                     type="submit"
-                    className="w-full px-8 py-4 bg-gradient-to-r from-navy-600 to-navy-700 text-white rounded-lg font-semibold hover:from-navy-700 hover:to-navy-800 transition-all text-lg shadow-lg"
+                    className="w-full px-8 py-4 bg-gradient-to-r from-navy-600 to-navy-700 text-white rounded-lg font-semibold hover:from-navy-700 hover:to-navy-800 transition-all text-lg shadow-lg hover:shadow-xl"
                   >
                     🔑 Generate Login Code
                   </button>
