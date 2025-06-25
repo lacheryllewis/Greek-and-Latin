@@ -135,9 +135,9 @@ backend:
 frontend:
   - task: "Login Code Manager Interface"
     implemented: true
-    working: true
+    working: false
     file: "frontend/src/App.js"
-    stuck_count: 0
+    stuck_count: 1
     priority: "high"
     needs_retesting: false
     status_history:
@@ -147,6 +147,9 @@ frontend:
         - working: true
           agent: "testing"
           comment: "Tested the Login Code Manager interface. Admin login works correctly. The Login Codes button is present in the admin dashboard and navigates to the Login Code Management page. The interface shows a clean UI with 'Create New Code' button and 'Back to Admin' button. The UI for creating new login codes is implemented, but the backend API endpoint /api/admin/login-codes returns a 502 error, preventing full functionality testing."
+        - working: false
+          agent: "testing"
+          comment: "Tested the login code creation functionality. The UI is implemented correctly and shows existing login codes. However, when clicking on '+ Create New Code', the form appears but clicking 'Generate Login Code' button doesn't trigger the API call. The issue is that the form is not properly showing up - the input fields for the form are not visible or accessible, preventing users from entering the required data. The backend API for creating login codes (/api/admin/create-login-code) is working correctly as seen in the logs, but the frontend form has a UI issue that prevents users from entering data."
 
   - task: "Student Registration with Login Code UI"
     implemented: true
