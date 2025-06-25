@@ -885,6 +885,80 @@ function App() {
     }
   };
 
+  const loadStudentAnalytics = async (studentId) => {
+    try {
+      const response = await axios.get(`${API_BASE_URL}/api/admin/student/${studentId}`);
+      setStudentAnalytics(prev => ({
+        ...prev,
+        [studentId]: response.data.analytics
+      }));
+      return response.data;
+    } catch (error) {
+      console.error('Failed to load student analytics:', error);
+      return null;
+    }
+  };
+
+  const handleUpdateStudent = async (studentId, studentData) => {
+    try {
+      const response = await axios.put(`${API_BASE_URL}/api/admin/student/${studentId}`, studentData);
+      if (response.status === 200) {
+        await loadAdminData(); // Refresh admin data
+        setShowStudentEditor(false);
+        setSelectedStudent(null);
+        alert('Student profile updated successfully!');
+      }
+    } catch (error) {
+      console.error('Student update error:', error);
+      alert('Failed to update student: ' + (error.response?.data?.detail || 'Unknown error'));
+    }
+  };
+
+  const handleDeleteStudent = async (studentId, studentName) => {
+    const confirmed = window.confirm(
+      `⚠️ DELETE STUDENT CONFIRMATION\n\n` +
+      `Are you sure you want to delete ${studentName}?\n\n` +
+      `This will permanently remove:\n` +
+      `• Student profile and account\n` +
+      `• All study sessions and progress\n` +
+      `• All quiz results and scores\n\n` +
+      `This action cannot be undone.`
+    );
+
+    if (!confirmed) return;
+
+    try {
+      const response = await axios.delete(`${API_BASE_URL}/api/admin/student/${studentId}`);
+      if (response.status === 200) {
+        await loadAdminData(); // Refresh admin data
+        alert(`✅ Student ${studentName} has been successfully deleted.`);
+      }
+    } catch (error) {
+      console.error('Student deletion error:', error);
+      if (error.response?.status === 404) {
+        alert(`❌ Student ${studentName} not found. They may have already been deleted.`);
+      } else if (error.response?.status === 400) {
+        alert(`❌ Cannot delete this account: ${error.response.data.detail}`);
+      } else {
+        alert(`❌ Failed to delete student ${studentName}: ${error.response?.data?.detail || 'Unknown error'}`);
+      }
+    }
+  };
+
+  const handleCreateStudent = async (studentData) => {
+    try {
+      const response = await axios.post(`${API_BASE_URL}/api/admin/create-student`, studentData);
+      if (response.status === 200) {
+        await loadAdminData(); // Refresh admin data
+        setShowCreateStudent(false);
+        alert(response.data.message);
+      }
+    } catch (error) {
+      console.error('Student creation error:', error);
+      alert('Failed to create student: ' + (error.response?.data?.detail || 'Unknown error'));
+    }
+  };
+
   const loadLeaderboard = async () => {
     try {
       const response = await axios.get(`${API_BASE_URL}/api/leaderboard`);
