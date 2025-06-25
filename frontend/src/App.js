@@ -1462,8 +1462,248 @@ function App() {
     );
   }
 
-  // Backup Manager View
-  if (showBackupManager) {
+  // Student Editor Modal
+  if (showStudentEditor && selectedStudent) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-navy-900 via-navy-800 to-navy-700 p-6">
+        <div className="max-w-2xl mx-auto bg-white rounded-2xl shadow-2xl p-8">
+          <div className="flex justify-between items-center mb-6">
+            <h2 className="text-2xl font-bold text-navy-800">✏️ Edit Student Profile</h2>
+            <button
+              onClick={() => {
+                setShowStudentEditor(false);
+                setSelectedStudent(null);
+              }}
+              className="text-gray-400 hover:text-gray-600"
+            >
+              ✕
+            </button>
+          </div>
+          
+          <form onSubmit={(e) => {
+            e.preventDefault();
+            const formData = new FormData(e.target);
+            const studentData = {
+              first_name: formData.get('first_name'),
+              last_name: formData.get('last_name'),
+              email: formData.get('email'),
+              grade: formData.get('grade'),
+              school: formData.get('school'),
+              block_number: formData.get('block_number'),
+              teacher: formData.get('teacher')
+            };
+            handleUpdateStudent(selectedStudent.id, studentData);
+          }} className="space-y-4">
+            <div className="grid grid-cols-2 gap-4">
+              <input
+                type="text"
+                name="first_name"
+                placeholder="First Name"
+                defaultValue={selectedStudent.first_name}
+                className="p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gold-500 focus:border-transparent"
+                required
+              />
+              <input
+                type="text"
+                name="last_name"
+                placeholder="Last Name"
+                defaultValue={selectedStudent.last_name}
+                className="p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gold-500 focus:border-transparent"
+                required
+              />
+            </div>
+            <input
+              type="email"
+              name="email"
+              placeholder="Email"
+              defaultValue={selectedStudent.email}
+              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gold-500 focus:border-transparent"
+              required
+            />
+            <div className="grid grid-cols-2 gap-4">
+              <select
+                name="grade"
+                defaultValue={selectedStudent.grade || ''}
+                className="p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gold-500 focus:border-transparent"
+                required
+              >
+                <option value="">Select Grade</option>
+                <option value="6th">6th Grade</option>
+                <option value="7th">7th Grade</option>
+                <option value="8th">8th Grade</option>
+                <option value="9th">9th Grade</option>
+                <option value="10th">10th Grade</option>
+                <option value="11th">11th Grade</option>
+                <option value="12th">12th Grade</option>
+              </select>
+              <input
+                type="text"
+                name="block_number"
+                placeholder="Block Number"
+                defaultValue={selectedStudent.block_number || ''}
+                className="p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gold-500 focus:border-transparent"
+                required
+              />
+            </div>
+            <input
+              type="text"
+              name="school"
+              placeholder="School Name"
+              defaultValue={selectedStudent.school || ''}
+              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gold-500 focus:border-transparent"
+              required
+            />
+            <input
+              type="text"
+              name="teacher"
+              placeholder="Teacher Name"
+              defaultValue={selectedStudent.teacher || ''}
+              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gold-500 focus:border-transparent"
+              required
+            />
+            
+            <div className="flex space-x-4 pt-4">
+              <button
+                type="submit"
+                className="flex-1 bg-gradient-to-r from-gold-500 to-gold-600 text-navy-900 py-3 rounded-lg font-semibold hover:from-gold-600 hover:to-gold-700 transition-all"
+              >
+                💾 Update Student
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setShowStudentEditor(false);
+                  setSelectedStudent(null);
+                }}
+                className="flex-1 bg-gray-300 text-gray-700 py-3 rounded-lg font-semibold hover:bg-gray-400 transition-all"
+              >
+                Cancel
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    );
+  }
+
+  // Create Student Modal
+  if (showCreateStudent) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-navy-900 via-navy-800 to-navy-700 p-6">
+        <div className="max-w-2xl mx-auto bg-white rounded-2xl shadow-2xl p-8">
+          <div className="flex justify-between items-center mb-6">
+            <h2 className="text-2xl font-bold text-navy-800">➕ Create New Student</h2>
+            <button
+              onClick={() => setShowCreateStudent(false)}
+              className="text-gray-400 hover:text-gray-600"
+            >
+              ✕
+            </button>
+          </div>
+          
+          <form onSubmit={(e) => {
+            e.preventDefault();
+            const formData = new FormData(e.target);
+            const studentData = {
+              first_name: formData.get('first_name'),
+              last_name: formData.get('last_name'),
+              email: formData.get('email'),
+              password: formData.get('password'),
+              grade: formData.get('grade'),
+              school: formData.get('school'),
+              block_number: formData.get('block_number'),
+              teacher: formData.get('teacher')
+            };
+            handleCreateStudent(studentData);
+          }} className="space-y-4">
+            <div className="grid grid-cols-2 gap-4">
+              <input
+                type="text"
+                name="first_name"
+                placeholder="First Name"
+                className="p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gold-500 focus:border-transparent"
+                required
+              />
+              <input
+                type="text"
+                name="last_name"
+                placeholder="Last Name"
+                className="p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gold-500 focus:border-transparent"
+                required
+              />
+            </div>
+            <input
+              type="email"
+              name="email"
+              placeholder="Email"
+              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gold-500 focus:border-transparent"
+              required
+            />
+            <input
+              type="password"
+              name="password"
+              placeholder="Temporary Password"
+              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gold-500 focus:border-transparent"
+              required
+            />
+            <div className="grid grid-cols-2 gap-4">
+              <select
+                name="grade"
+                className="p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gold-500 focus:border-transparent"
+                required
+              >
+                <option value="">Select Grade</option>
+                <option value="6th">6th Grade</option>
+                <option value="7th">7th Grade</option>
+                <option value="8th">8th Grade</option>
+                <option value="9th">9th Grade</option>
+                <option value="10th">10th Grade</option>
+                <option value="11th">11th Grade</option>
+                <option value="12th">12th Grade</option>
+              </select>
+              <input
+                type="text"
+                name="block_number"
+                placeholder="Block Number"
+                className="p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gold-500 focus:border-transparent"
+                required
+              />
+            </div>
+            <input
+              type="text"
+              name="school"
+              placeholder="School Name"
+              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gold-500 focus:border-transparent"
+              required
+            />
+            <input
+              type="text"
+              name="teacher"
+              placeholder="Teacher Name"
+              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gold-500 focus:border-transparent"
+              required
+            />
+            
+            <div className="flex space-x-4 pt-4">
+              <button
+                type="submit"
+                className="flex-1 bg-gradient-to-r from-purple-500 to-purple-600 text-white py-3 rounded-lg font-semibold hover:from-purple-600 hover:to-purple-700 transition-all"
+              >
+                ➕ Create Student
+              </button>
+              <button
+                type="button"
+                onClick={() => setShowCreateStudent(false)}
+                className="flex-1 bg-gray-300 text-gray-700 py-3 rounded-lg font-semibold hover:bg-gray-400 transition-all"
+              >
+                Cancel
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    );
+  }
     return (
       <div className="min-h-screen bg-gradient-to-br from-navy-900 via-navy-800 to-navy-700 p-6">
         <BackupManager 
