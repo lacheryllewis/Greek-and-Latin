@@ -2110,7 +2110,7 @@ function App() {
     );
   }
 
-  // Admin View
+  // Enhanced Admin View with Student Management
   if (currentView === 'admin' && user?.is_teacher) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-navy-900 via-navy-800 to-navy-700">
@@ -2123,19 +2123,22 @@ function App() {
               <span>←</span>
               <span>Back to Dashboard</span>
             </button>
-            <h1 className="text-2xl font-bold text-navy-800">👩‍💼 Administrator Dashboard</h1>
+            <div className="flex items-center space-x-2">
+              <span className="text-2xl">👩‍💼</span>
+              <h1 className="text-2xl font-bold text-navy-800">Administrator Dashboard</h1>
+            </div>
             <div className="flex space-x-2">
+              <button
+                onClick={() => setShowCreateStudent(true)}
+                className="px-4 py-2 bg-gradient-to-r from-purple-500 to-purple-600 text-white rounded-lg font-medium hover:from-purple-600 hover:to-purple-700 transition-all"
+              >
+                ➕ Add Student
+              </button>
               <button
                 onClick={() => setShowSlideCreator(true)}
                 className="px-4 py-2 bg-gradient-to-r from-gold-500 to-gold-600 text-navy-900 rounded-lg font-medium hover:from-gold-600 hover:to-gold-700 transition-all"
               >
                 ➕ Create Slide
-              </button>
-              <button
-                onClick={() => setShowStudySetCreator(true)}
-                className="px-4 py-2 bg-gradient-to-r from-navy-500 to-navy-600 text-white rounded-lg font-medium hover:from-navy-600 hover:to-navy-700 transition-all"
-              >
-                📚 Create Study Set
               </button>
               <button
                 onClick={() => { 
@@ -2151,187 +2154,216 @@ function App() {
         </header>
 
         <div className="max-w-6xl mx-auto p-6">
-          <div className="bg-white rounded-2xl shadow-xl p-8">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-              <div>
-                <h3 className="text-xl font-semibold text-navy-700 mb-6">👥 Student Profiles</h3>
-                <div className="space-y-4">
-                  {adminUsers.filter(u => !u.is_teacher).length > 0 ? (
-                    adminUsers.filter(u => !u.is_teacher).map((student, index) => (
-                      <div key={student.id} className="bg-white rounded-xl p-6 shadow-lg border-l-4 border-gold-500">
-                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                          {/* Basic Information */}
-                          <div>
-                            <div className="flex items-center space-x-3 mb-4">
-                              <div className="w-12 h-12 bg-gradient-to-br from-gold-400 to-gold-600 rounded-full flex items-center justify-center text-white font-bold text-lg">
-                                {student.first_name[0]}{student.last_name[0]}
-                              </div>
-                              <div>
-                                <h4 className="font-bold text-lg text-navy-800">
-                                  {student.first_name} {student.last_name}
-                                </h4>
-                                <p className="text-sm text-gray-600">{student.email}</p>
-                              </div>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            {/* Student Profiles Section */}
+            <div className="bg-white rounded-2xl shadow-xl p-6">
+              <div className="flex items-center justify-between mb-6">
+                <div className="flex items-center space-x-2">
+                  <span className="text-xl">👥</span>
+                  <h3 className="text-xl font-semibold text-navy-700">Student Profiles</h3>
+                </div>
+                <button
+                  onClick={() => setShowCreateStudent(true)}
+                  className="px-3 py-1 bg-purple-500 text-white text-sm rounded-lg hover:bg-purple-600 transition-colors"
+                >
+                  + Add Student
+                </button>
+              </div>
+              
+              <div className="space-y-4 max-h-96 overflow-y-auto">
+                {adminUsers.filter(u => !u.is_teacher).length > 0 ? (
+                  adminUsers.filter(u => !u.is_teacher).map((student, index) => (
+                    <div key={student.id} className="bg-gray-50 rounded-xl p-4 border-l-4 border-gold-500">
+                      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                        {/* Basic Information */}
+                        <div>
+                          <div className="flex items-center space-x-3 mb-3">
+                            <div className="w-8 h-8 bg-gradient-to-br from-gold-400 to-gold-600 rounded-full flex items-center justify-center text-white font-bold text-sm">
+                              {student.first_name?.[0]}{student.last_name?.[0]}
                             </div>
-                            
-                            <div className="space-y-2">
-                              <div className="flex justify-between">
-                                <span className="text-sm font-medium text-gray-600">Grade:</span>
-                                <span className="text-sm text-navy-700 font-semibold">{student.grade || 'Not specified'}</span>
-                              </div>
-                              <div className="flex justify-between">
-                                <span className="text-sm font-medium text-gray-600">School:</span>
-                                <span className="text-sm text-navy-700 font-semibold">{student.school || 'Not specified'}</span>
-                              </div>
-                              <div className="flex justify-between">
-                                <span className="text-sm font-medium text-gray-600">Block:</span>
-                                <span className="text-sm text-navy-700 font-semibold">{student.block_number || 'Not specified'}</span>
-                              </div>
-                              <div className="flex justify-between">
-                                <span className="text-sm font-medium text-gray-600">Teacher:</span>
-                                <span className="text-sm text-navy-700 font-semibold">{student.teacher || 'Not specified'}</span>
-                              </div>
+                            <div>
+                              <h4 className="font-bold text-navy-800">
+                                {student.first_name} {student.last_name}
+                              </h4>
+                              <p className="text-xs text-gray-600">{student.email}</p>
                             </div>
                           </div>
                           
-                          {/* Academic Progress */}
-                          <div>
-                            <h5 className="font-semibold text-navy-700 mb-3">📈 Academic Progress</h5>
-                            <div className="grid grid-cols-2 gap-3 mb-4">
-                              <div className="bg-blue-50 rounded-lg p-3 text-center">
-                                <div className="text-xl font-bold text-blue-600">{student.level || 1}</div>
-                                <div className="text-xs text-blue-600">Level</div>
-                              </div>
-                              <div className="bg-green-50 rounded-lg p-3 text-center">
-                                <div className="text-xl font-bold text-green-600">{student.total_points || 0}</div>
-                                <div className="text-xs text-green-600">Points</div>
-                              </div>
+                          <div className="space-y-1 text-sm">
+                            <div className="flex justify-between">
+                              <span className="text-gray-600">Grade:</span>
+                              <span className="text-navy-700 font-semibold">{student.grade || 'Not specified'}</span>
                             </div>
-                            
-                            <div className="space-y-2">
-                              <div className="flex justify-between">
-                                <span className="text-sm font-medium text-gray-600">Streak:</span>
-                                <span className="text-sm text-navy-700 font-semibold">{student.streak_days || 0} days</span>
-                              </div>
-                              <div className="flex justify-between">
-                                <span className="text-sm font-medium text-gray-600">Joined:</span>
-                                <span className="text-sm text-navy-700 font-semibold">
-                                  {new Date(student.created_at).toLocaleDateString()}
-                                </span>
-                              </div>
+                            <div className="flex justify-between">
+                              <span className="text-gray-600">School:</span>
+                              <span className="text-navy-700 font-semibold">{student.school || 'Not specified'}</span>
                             </div>
-                            
-                            {student.badges && student.badges.length > 0 && (
-                              <div className="mt-4">
-                                <h6 className="text-xs font-semibold text-gray-600 mb-2">BADGES EARNED:</h6>
-                                <div className="flex flex-wrap gap-1">
-                                  {student.badges.slice(0, 3).map((badge, idx) => (
-                                    <Badge key={idx} name={badge} earned={true} />
-                                  ))}
-                                  {student.badges.length > 3 && (
-                                    <span className="text-xs text-gray-500">+{student.badges.length - 3} more</span>
-                                  )}
-                                </div>
-                              </div>
-                            )}
+                            <div className="flex justify-between">
+                              <span className="text-gray-600">Block:</span>
+                              <span className="text-navy-700 font-semibold">{student.block_number || 'Not specified'}</span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span className="text-gray-600">Teacher:</span>
+                              <span className="text-navy-700 font-semibold">{student.teacher || 'Not specified'}</span>
+                            </div>
+                          </div>
+                        </div>
+                        
+                        {/* Academic Progress */}
+                        <div>
+                          <div className="flex items-center space-x-1 mb-2">
+                            <span className="text-sm">📈</span>
+                            <h5 className="font-semibold text-navy-700 text-sm">Academic Progress</h5>
+                          </div>
+                          <div className="grid grid-cols-2 gap-2 mb-3">
+                            <div className="bg-blue-50 rounded-lg p-2 text-center">
+                              <div className="text-lg font-bold text-blue-600">{student.level || 1}</div>
+                              <div className="text-xs text-blue-600">Level</div>
+                            </div>
+                            <div className="bg-green-50 rounded-lg p-2 text-center">
+                              <div className="text-lg font-bold text-green-600">{student.total_points || 0}</div>
+                              <div className="text-xs text-green-600">Points</div>
+                            </div>
+                          </div>
+                          
+                          <div className="space-y-1 text-sm">
+                            <div className="flex justify-between">
+                              <span className="text-gray-600">Streak:</span>
+                              <span className="text-navy-700 font-semibold">{student.streak_days || 0} days</span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span className="text-gray-600">Joined:</span>
+                              <span className="text-navy-700 font-semibold">
+                                {new Date(student.created_at).toLocaleDateString()}
+                              </span>
+                            </div>
                           </div>
                         </div>
                       </div>
-                    ))
-                  ) : (
-                    <div className="text-center py-8 text-gray-500 bg-white rounded-xl">
-                      <p className="text-lg">No students registered yet.</p>
-                      <p className="text-sm mt-2">Students will appear here after they sign up with complete profile information.</p>
+                      
+                      {/* Action Buttons */}
+                      <div className="flex space-x-2 mt-4 pt-3 border-t border-gray-200">
+                        <button
+                          onClick={() => {
+                            setSelectedStudent(student);
+                            setShowStudentEditor(true);
+                          }}
+                          className="flex-1 px-3 py-1 bg-blue-500 text-white text-xs rounded hover:bg-blue-600 transition-colors"
+                        >
+                          ✏️ Edit Profile
+                        </button>
+                        <button
+                          onClick={() => loadStudentAnalytics(student.id)}
+                          className="flex-1 px-3 py-1 bg-green-500 text-white text-xs rounded hover:bg-green-600 transition-colors"
+                        >
+                          📊 View Analytics
+                        </button>
+                        <button
+                          onClick={() => handleDeleteStudent(student.id, `${student.first_name} ${student.last_name}`)}
+                          className="flex-1 px-3 py-1 bg-red-500 text-white text-xs rounded hover:bg-red-600 transition-colors"
+                        >
+                          🗑️ Delete
+                        </button>
+                      </div>
+                    </div>
+                  ))
+                ) : (
+                  <div className="text-center py-8 text-gray-500">
+                    <p className="text-lg">No students registered yet.</p>
+                    <p className="text-sm mt-2">Students will appear here after they sign up.</p>
+                  </div>
+                )}
+              </div>
+            </div>
+            
+            {/* Content Management Section */}
+            <div className="bg-white rounded-2xl shadow-xl p-6">
+              <div className="flex items-center space-x-2 mb-6">
+                <span className="text-xl">🔧</span>
+                <h3 className="text-xl font-semibold text-navy-700">Content Management</h3>
+              </div>
+              
+              <div className="grid grid-cols-2 gap-4 mb-6">
+                <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl p-6 text-center">
+                  <div className="text-3xl font-bold text-blue-600">{adminUsers.filter(u => !u.is_teacher).length}</div>
+                  <div className="text-sm text-blue-600 font-medium">Students</div>
+                </div>
+                <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-xl p-6 text-center">
+                  <div className="text-3xl font-bold text-green-600">{words.length}</div>
+                  <div className="text-sm text-green-600 font-medium">Word Cards</div>
+                </div>
+              </div>
+              
+              <div className="space-y-3">
+                <div className="flex justify-between items-center">
+                  <h4 className="font-semibold text-navy-700">All Slides ({words.length})</h4>
+                  <div className="text-sm text-gray-500">
+                    Edit or delete any slide below
+                  </div>
+                </div>
+                <div className="max-h-64 overflow-y-auto space-y-2 border rounded-lg p-3 bg-gray-50">
+                  {words.slice(0, 10).map((word, index) => (
+                    <div key={word.id} className="flex justify-between items-center p-3 bg-white rounded-lg border hover:shadow-sm transition-all">
+                      <div className="flex-1">
+                        <div className="flex items-center space-x-2">
+                          <span className={`px-2 py-1 rounded text-xs font-bold ${
+                            word.type === 'prefix' ? 'bg-blue-100 text-blue-800' :
+                            word.type === 'suffix' ? 'bg-green-100 text-green-800' :
+                            'bg-purple-100 text-purple-800'
+                          }`}>
+                            {word.type}
+                          </span>
+                          <span className="font-bold text-navy-800">{word.root}</span>
+                          <span className="text-sm text-gray-600">({word.origin})</span>
+                        </div>
+                        <div className="text-sm text-gray-600 mt-1">"{word.meaning}"</div>
+                        <div className="text-xs text-gray-500">{word.difficulty} • {word.points} pts</div>
+                      </div>
+                      <div className="flex space-x-2">
+                        <button
+                          onClick={() => {
+                            setEditingSlide(word);
+                            setShowSlideCreator(true);
+                          }}
+                          className="px-3 py-1 bg-blue-500 text-white text-xs rounded hover:bg-blue-600 transition-colors"
+                        >
+                          ✏️ Edit
+                        </button>
+                        <button
+                          onClick={() => handleDeleteSlide(word.id, word.root)}
+                          className="px-3 py-1 bg-red-500 text-white text-xs rounded hover:bg-red-600 transition-colors"
+                        >
+                          🗑️ Delete
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                  {words.length > 10 && (
+                    <div className="text-center py-2 text-gray-500 text-sm">
+                      ... and {words.length - 10} more slides
+                    </div>
+                  )}
+                  {words.length === 0 && (
+                    <div className="text-center py-8 text-gray-500">
+                      <p>No slides created yet.</p>
+                      <p className="text-sm mt-2">Click "Create Slide" to add your first slide.</p>
                     </div>
                   )}
                 </div>
               </div>
               
-              <div>
-                <h3 className="text-xl font-semibold text-navy-700 mb-6">📈 Content Management</h3>
-                <div className="grid grid-cols-2 gap-4 mb-6">
-                  <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl p-6 text-center">
-                    <div className="text-3xl font-bold text-blue-600">{adminUsers.filter(u => !u.is_teacher).length}</div>
-                    <div className="text-sm text-blue-600 font-medium">Students</div>
-                  </div>
-                  <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-xl p-6 text-center">
-                    <div className="text-3xl font-bold text-green-600">{words.length}</div>
-                    <div className="text-sm text-green-600 font-medium">Word Cards</div>
-                  </div>
+              <div className="mt-6 p-4 bg-yellow-50 rounded-xl">
+                <div className="flex items-center space-x-2 mb-2">
+                  <span className="text-yellow-600">💡</span>
+                  <h4 className="font-semibold text-navy-700">Content Management Tips</h4>
                 </div>
-                
-                <div className="space-y-3">
-                  <div className="flex justify-between items-center">
-                    <h4 className="font-semibold text-navy-700">All Slides ({words.length})</h4>
-                    <div className="text-sm text-gray-500">
-                      Edit or delete any slide below
-                    </div>
-                  </div>
-                  <div className="max-h-64 overflow-y-auto space-y-2 border rounded-lg p-3 bg-gray-50">
-                    {words.map((word, index) => (
-                      <div key={word.id} className="flex justify-between items-center p-3 bg-white rounded-lg border hover:shadow-sm transition-all">
-                        <div className="flex-1">
-                          <div className="flex items-center space-x-2">
-                            <span className={`px-2 py-1 rounded text-xs font-bold ${
-                              word.type === 'prefix' ? 'bg-blue-100 text-blue-800' :
-                              word.type === 'suffix' ? 'bg-green-100 text-green-800' :
-                              'bg-purple-100 text-purple-800'
-                            }`}>
-                              {word.type}
-                            </span>
-                            <span className="font-bold text-navy-800">{word.root}</span>
-                            <span className="text-sm text-gray-600">({word.origin})</span>
-                          </div>
-                          <div className="text-sm text-gray-600 mt-1">"{word.meaning}"</div>
-                          <div className="text-xs text-gray-500">{word.difficulty} • {word.points} pts</div>
-                        </div>
-                        <div className="flex space-x-2">
-                          <button
-                            onClick={() => {
-                              setEditingSlide(word);
-                              setShowSlideCreator(true);
-                            }}
-                            className="px-3 py-1 bg-blue-500 text-white text-xs rounded hover:bg-blue-600 transition-colors"
-                          >
-                            ✏️ Edit
-                          </button>
-                          <button
-                            onClick={() => handleDeleteSlide(word.id, word.root)}
-                            className="px-3 py-1 bg-red-500 text-white text-xs rounded hover:bg-red-600 transition-colors"
-                          >
-                            🗑️ Delete
-                          </button>
-                        </div>
-                      </div>
-                    ))}
-                    {words.length === 0 && (
-                      <div className="text-center py-8 text-gray-500">
-                        <p>No slides created yet.</p>
-                        <p className="text-sm mt-2">Click "Create Slide" to add your first slide.</p>
-                      </div>
-                    )}
-                  </div>
-                </div>
-                
-                <div className="mt-6 p-4 bg-navy-50 rounded-xl">
-                  <h4 className="font-semibold text-navy-700 mb-2">💡 Content Management Tips</h4>
-                  <ul className="text-sm text-navy-600 space-y-1">
-                    <li>• Create custom study sets for targeted learning</li>
-                    <li>• Use multiple-choice mode for guided practice</li>
-                    <li>• Upload visual aids to enhance comprehension</li>
-                    <li>• Edit slides anytime to update content or fix errors</li>
-                    <li>• Delete outdated or duplicate slides to keep content clean</li>
-                  </ul>
-                </div>
-              </div>
-            </div>
-            
-            <div className="mt-8 p-6 bg-gradient-to-r from-gold-50 to-navy-50 rounded-xl">
-              <div className="text-center">
-                <JamaalCharacter 
-                  message="Teachers are the real language heroes! Thanks for empowering students to master Greek and Latin!" 
-                  size="medium"
-                />
+                <ul className="text-sm text-navy-600 space-y-1">
+                  <li>• Create custom study sets for targeted learning</li>
+                  <li>• Use multiple-choice mode for guided practice</li>
+                  <li>• Upload visual aids to enhance comprehension</li>
+                  <li>• Edit slides anytime to update content or fix errors</li>
+                  <li>• Delete outdated or duplicate slides to keep content clean</li>
+                </ul>
               </div>
             </div>
           </div>
