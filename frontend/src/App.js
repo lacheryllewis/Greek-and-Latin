@@ -1570,6 +1570,9 @@ function App() {
       </div>
     );
   }
+
+  // Backup Manager View
+  if (showBackupManager) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-navy-900 via-navy-800 to-navy-700 p-6">
         <BackupManager 
