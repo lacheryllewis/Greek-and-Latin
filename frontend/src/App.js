@@ -990,6 +990,96 @@ function App() {
     }));
   };
 
+  // Login Code Management Functions
+  const loadLoginCodes = async () => {
+    if (!user?.is_teacher) return;
+    
+    try {
+      const response = await axios.get(`${API_BASE_URL}/api/admin/login-codes`);
+      setLoginCodes(response.data);
+    } catch (error) {
+      console.error('Failed to load login codes:', error);
+    }
+  };
+
+  const createLoginCode = async (codeData) => {
+    try {
+      const response = await axios.post(`${API_BASE_URL}/api/admin/create-login-code`, codeData);
+      if (response.status === 200 || response.status === 201) {
+        loadLoginCodes(); // Refresh the list
+        alert(`✅ Login Code Created Successfully!\n\nCode: ${response.data.login_code.code}\nClass: ${response.data.login_code.class_name}\nMax Uses: ${response.data.login_code.max_uses}\nExpires: ${new Date(response.data.login_code.expires_at).toLocaleDateString()}`);
+      }
+    } catch (error) {
+      console.error('Login code creation error:', error);
+      alert('Failed to create login code: ' + (error.response?.data?.detail || 'Unknown error'));
+    }
+  };
+
+  const toggleLoginCode = async (codeId) => {
+    try {
+      const response = await axios.put(`${API_BASE_URL}/api/admin/login-code/${codeId}/toggle`);
+      if (response.status === 200) {
+        loadLoginCodes(); // Refresh the list
+        alert(`✅ Login code ${response.data.code} ${response.data.active ? 'activated' : 'deactivated'} successfully!`);
+      }
+    } catch (error) {
+      console.error('Failed to toggle login code:', error);
+      alert('Failed to update login code: ' + (error.response?.data?.detail || 'Unknown error'));
+    }
+  };
+
+  const deleteLoginCode = async (codeId, codeName) => {
+    const confirmed = window.confirm(`⚠️ DELETE LOGIN CODE CONFIRMATION\n\nAre you sure you want to delete the login code "${codeName}"?\n\nThis action cannot be undone and students will no longer be able to use this code to register.`);
+    
+    if (!confirmed) return;
+
+    try {
+      const response = await axios.delete(`${API_BASE_URL}/api/admin/login-code/${codeId}`);
+      if (response.status === 200) {
+        loadLoginCodes(); // Refresh the list
+        alert(`✅ Login code "${response.data.code}" deleted successfully!`);
+      }
+    } catch (error) {
+      console.error('Failed to delete login code:', error);
+      alert('Failed to delete login code: ' + (error.response?.data?.detail || 'Unknown error'));
+    }
+  };
+
+  const validateLoginCode = async (code) => {
+    try {
+      const response = await axios.post(`${API_BASE_URL}/api/validate-login-code`, { code });
+      setValidatedCodeInfo(response.data.class_info);
+      return response.data;
+    } catch (error) {
+      console.error('Login code validation error:', error);
+      setValidatedCodeInfo(null);
+      throw error;
+    }
+  };
+
+  const handleRegisterWithCode = async (userData) => {
+    try {
+      const response = await axios.post(`${API_BASE_URL}/api/register-with-code`, userData);
+      if (response.status === 200 || response.status === 201) {
+        const token = response.data.access_token;
+        localStorage.setItem('token', token);
+        setUser(response.data.user);
+        
+        // Show success message with class info if available
+        if (response.data.class_info) {
+          alert(`🎉 Welcome to ${response.data.class_info.class_name}!\n\nTeacher: ${response.data.class_info.teacher_name}\nYou're now registered and ready to start learning!`);
+        } else {
+          alert('🎉 Registration successful! Welcome to Greek and Latin Academy!');
+        }
+        
+        setCurrentView('dashboard');
+      }
+    } catch (error) {
+      console.error('Registration with code error:', error);
+      alert('Registration failed: ' + (error.response?.data?.detail || 'Unknown error'));
+    }
+  };
+
   // Function to sort words alphabetically or by type
   const getSortedWords = () => {
     if (sortOrder === 'alphabetical') {
