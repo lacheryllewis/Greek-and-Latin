@@ -1594,37 +1594,110 @@ function App() {
   // Login Code Manager Component
   const LoginCodeManager = () => {
     const [showCreateForm, setShowCreateForm] = useState(true);
-    const [className, setClassName] = useState('');
-    const [blockNumber, setBlockNumber] = useState('');
-    const [school, setSchool] = useState('');
-    const [grade, setGrade] = useState('');
-    const [maxUses, setMaxUses] = useState('50');
-    const [expiresInDays, setExpiresInDays] = useState('30');
+    
+    // Use refs for persistent storage that survives re-renders
+    const persistentFormData = useRef({
+      className: '',
+      blockNumber: '',
+      school: '',
+      grade: '',
+      maxUses: '50',
+      expiresInDays: '30'
+    });
+    
+    // State for UI updates only - synced with ref
+    const [formDisplayData, setFormDisplayData] = useState({
+      className: '',
+      blockNumber: '',
+      school: '',
+      grade: '',
+      maxUses: '50',
+      expiresInDays: '30'
+    });
+    
     const [isLoading, setIsLoading] = useState(false);
+    const [debugLog, setDebugLog] = useState([]);
+    
+    // Add debug log entry
+    const addDebugLog = (message) => {
+      const timestamp = new Date().toISOString().split('T')[1].split('.')[0];
+      const logEntry = `${timestamp}: ${message}`;
+      console.log('🔍 DEBUG:', logEntry);
+      setDebugLog(prev => [...prev.slice(-10), logEntry]); // Keep last 10 entries
+    };
 
-    // Load login codes only once on mount - don't let this interfere with form state
+    // TEMPORARILY DISABLE ALL EXTERNAL EFFECTS
+    // useEffect(() => {
+    //   const loadCodesOnce = async () => {
+    //     try {
+    //       await loadLoginCodes();
+    //     } catch (error) {
+    //       console.error('Error loading login codes:', error);
+    //     }
+    //   };
+    //   loadCodesOnce();
+    // }, []);
+
+    // Protected update function that logs every change
+    const updateFormField = (fieldName, newValue, source = 'user') => {
+      const oldValue = persistentFormData.current[fieldName];
+      
+      addDebugLog(`Field "${fieldName}" changing from "${oldValue}" to "${newValue}" (source: ${source})`);
+      
+      // Get call stack to see what's calling this
+      const stack = new Error().stack;
+      console.log('🔍 CALL STACK for field update:', stack);
+      
+      // Update persistent ref
+      persistentFormData.current[fieldName] = newValue;
+      
+      // Update display state
+      setFormDisplayData(prev => {
+        const newState = { ...prev, [fieldName]: newValue };
+        addDebugLog(`Display state updated for "${fieldName}"`);
+        return newState;
+      });
+    };
+
+    // Monitor for unwanted resets
     useEffect(() => {
-      const loadCodesOnce = async () => {
-        try {
-          await loadLoginCodes();
-        } catch (error) {
-          console.error('Error loading login codes:', error);
-        }
+      const checkForResets = () => {
+        Object.keys(formDisplayData).forEach(key => {
+          const refValue = persistentFormData.current[key];
+          const stateValue = formDisplayData[key];
+          
+          if (refValue !== stateValue) {
+            addDebugLog(`🚨 MISMATCH DETECTED: ${key} - Ref: "${refValue}", State: "${stateValue}"`);
+            // Restore from ref
+            setFormDisplayData(prev => ({
+              ...prev,
+              [key]: refValue
+            }));
+          }
+        });
       };
-      loadCodesOnce();
-    }, []); // Empty dependency array - only run once
+      
+      const interval = setInterval(checkForResets, 1000);
+      return () => clearInterval(interval);
+    }, [formDisplayData]);
+
+    // Track any external state changes
+    useEffect(() => {
+      addDebugLog('FormDisplayData changed: ' + JSON.stringify(formDisplayData));
+    }, [formDisplayData]);
 
     const handleFormSubmit = async (e) => {
       e.preventDefault();
       setIsLoading(true);
+      addDebugLog('Form submission started');
       
       const formData = {
-        class_name: className,
-        block_number: blockNumber,
-        school: school,
-        grade: grade,
-        max_uses: parseInt(maxUses) || 50,
-        expires_in_days: parseInt(expiresInDays) || 30
+        class_name: persistentFormData.current.className,
+        block_number: persistentFormData.current.blockNumber,
+        school: persistentFormData.current.school,
+        grade: persistentFormData.current.grade,
+        max_uses: parseInt(persistentFormData.current.maxUses) || 50,
+        expires_in_days: parseInt(persistentFormData.current.expiresInDays) || 30
       };
       
       console.log('Submitting:', formData);
@@ -1632,34 +1705,38 @@ function App() {
       try {
         await createLoginCode(formData);
         
-        // Only reset form after successful submission
-        setClassName('');
-        setBlockNumber('');
-        setSchool('');
-        setGrade('');
-        setMaxUses('50');
-        setExpiresInDays('30');
+        // Reset form explicitly
+        addDebugLog('Explicit form reset after successful submission');
+        persistentFormData.current = {
+          className: '',
+          blockNumber: '',
+          school: '',
+          grade: '',
+          maxUses: '50',
+          expiresInDays: '30'
+        };
+        
+        setFormDisplayData({
+          className: '',
+          blockNumber: '',
+          school: '',
+          grade: '',
+          maxUses: '50',
+          expiresInDays: '30'
+        });
         
         alert('Login code created successfully!');
         
-        // Reload the login codes list
-        await loadLoginCodes();
+        // TEMPORARILY DISABLED - DON'T RELOAD CODES
+        // await loadLoginCodes();
       } catch (error) {
         console.error('Error:', error);
         alert('Error creating login code: ' + (error.response?.data?.detail || error.message || 'Unknown error'));
       } finally {
         setIsLoading(false);
+        addDebugLog('Form submission completed');
       }
     };
-
-    // Debug: Log when state changes
-    useEffect(() => {
-      console.log('State changed - Class Name:', className);
-    }, [className]);
-
-    useEffect(() => {
-      console.log('State changed - Block Number:', blockNumber);
-    }, [blockNumber]);
 
     return (
       <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '20px' }}>
@@ -1669,17 +1746,17 @@ function App() {
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '30px' }}>
             <div>
               <h2 style={{ fontSize: '28px', fontWeight: 'bold', color: '#1e293b', margin: '0 0 8px 0' }}>
-                Login Code Management
+                Login Code Management (DEBUG MODE)
               </h2>
               <p style={{ color: '#6b7280', margin: 0 }}>
-                Create and manage login codes for your classes
+                External effects DISABLED for debugging
               </p>
             </div>
             <div style={{ display: 'flex', gap: '10px' }}>
               <button
                 type="button"
                 onClick={() => {
-                  console.log('Toggle button clicked, current state:', showCreateForm);
+                  addDebugLog('Toggle button clicked');
                   setShowCreateForm(!showCreateForm);
                 }}
                 style={{
@@ -1712,19 +1789,22 @@ function App() {
             </div>
           </div>
 
-          {/* Form Status Debug */}
+          {/* Debug Log */}
           <div style={{ 
             padding: '10px', 
             backgroundColor: '#fef3c7', 
             border: '1px solid #f59e0b', 
             borderRadius: '6px',
             marginBottom: '20px',
-            fontSize: '14px'
+            fontSize: '12px',
+            fontFamily: 'monospace',
+            maxHeight: '150px',
+            overflowY: 'auto'
           }}>
-            <strong>DEBUG STATUS:</strong><br/>
-            Show Form: {showCreateForm ? 'TRUE - Form should be visible' : 'FALSE - Form is hidden'}<br/>
-            Form Data Persisting: {className || blockNumber || school ? 'YES - Data is being preserved' : 'Waiting for input...'}<br/>
-            Loading: {isLoading ? 'YES - Form submission in progress' : 'NO'}
+            <strong>🔍 REAL-TIME DEBUG LOG:</strong><br/>
+            {debugLog.map((log, index) => (
+              <div key={index}>{log}</div>
+            ))}
           </div>
 
           {/* Create Form */}
@@ -1737,7 +1817,7 @@ function App() {
               marginBottom: '30px'
             }}>
               <h3 style={{ fontSize: '20px', fontWeight: '600', color: '#1e40af', marginBottom: '20px' }}>
-                🔑 Create New Login Code
+                🔑 Create New Login Code (PROTECTED STATE)
               </h3>
               
               <form onSubmit={handleFormSubmit} style={{ pointerEvents: 'auto' }}>
@@ -1749,20 +1829,18 @@ function App() {
                   </label>
                   <input
                     type="text"
-                    value={className}
+                    value={formDisplayData.className}
                     onChange={(e) => {
-                      const newValue = e.target.value;
-                      console.log('Class name changing from:', className, 'to:', newValue);
-                      setClassName(newValue);
+                      updateFormField('className', e.target.value, 'user-typing');
                     }}
-                    onFocus={() => console.log('Class name input focused, current value:', className)}
-                    onBlur={() => console.log('Class name input blurred, final value:', className)}
+                    onFocus={() => addDebugLog('Class name input focused')}
+                    onBlur={() => addDebugLog('Class name input blurred')}
                     required
                     disabled={isLoading}
                     style={{
                       width: '100%',
                       padding: '12px',
-                      border: '2px solid #d1d5db',
+                      border: '3px solid #22c55e', // Green border to indicate protection
                       borderRadius: '6px',
                       fontSize: '16px',
                       backgroundColor: isLoading ? '#f3f4f6' : 'white',
@@ -1781,17 +1859,15 @@ function App() {
                   </label>
                   <input
                     type="text"
-                    value={blockNumber}
+                    value={formDisplayData.blockNumber}
                     onChange={(e) => {
-                      const newValue = e.target.value;
-                      console.log('Block number changing from:', blockNumber, 'to:', newValue);
-                      setBlockNumber(newValue);
+                      updateFormField('blockNumber', e.target.value, 'user-typing');
                     }}
                     disabled={isLoading}
                     style={{
                       width: '100%',
                       padding: '12px',
-                      border: '2px solid #d1d5db',
+                      border: '3px solid #22c55e',
                       borderRadius: '6px',
                       fontSize: '16px',
                       backgroundColor: isLoading ? '#f3f4f6' : 'white',
@@ -1810,17 +1886,15 @@ function App() {
                   </label>
                   <input
                     type="text"
-                    value={school}
+                    value={formDisplayData.school}
                     onChange={(e) => {
-                      const newValue = e.target.value;
-                      console.log('School changing from:', school, 'to:', newValue);
-                      setSchool(newValue);
+                      updateFormField('school', e.target.value, 'user-typing');
                     }}
                     disabled={isLoading}
                     style={{
                       width: '100%',
                       padding: '12px',
-                      border: '2px solid #d1d5db',
+                      border: '3px solid #22c55e',
                       borderRadius: '6px',
                       fontSize: '16px',
                       backgroundColor: isLoading ? '#f3f4f6' : 'white',
@@ -1838,17 +1912,15 @@ function App() {
                     Grade Level
                   </label>
                   <select
-                    value={grade}
+                    value={formDisplayData.grade}
                     onChange={(e) => {
-                      const newValue = e.target.value;
-                      console.log('Grade changing from:', grade, 'to:', newValue);
-                      setGrade(newValue);
+                      updateFormField('grade', e.target.value, 'user-selection');
                     }}
                     disabled={isLoading}
                     style={{
                       width: '100%',
                       padding: '12px',
-                      border: '2px solid #d1d5db',
+                      border: '3px solid #22c55e',
                       borderRadius: '6px',
                       fontSize: '16px',
                       backgroundColor: isLoading ? '#f3f4f6' : 'white',
@@ -1877,17 +1949,15 @@ function App() {
                     type="number"
                     min="1"
                     max="1000"
-                    value={maxUses}
+                    value={formDisplayData.maxUses}
                     onChange={(e) => {
-                      const newValue = e.target.value;
-                      console.log('Max uses changing from:', maxUses, 'to:', newValue);
-                      setMaxUses(newValue);
+                      updateFormField('maxUses', e.target.value, 'user-typing');
                     }}
                     disabled={isLoading}
                     style={{
                       width: '100%',
                       padding: '12px',
-                      border: '2px solid #d1d5db',
+                      border: '3px solid #22c55e',
                       borderRadius: '6px',
                       fontSize: '16px',
                       backgroundColor: isLoading ? '#f3f4f6' : 'white',
@@ -1907,17 +1977,15 @@ function App() {
                     type="number"
                     min="1"
                     max="365"
-                    value={expiresInDays}
+                    value={formDisplayData.expiresInDays}
                     onChange={(e) => {
-                      const newValue = e.target.value;
-                      console.log('Expires in days changing from:', expiresInDays, 'to:', newValue);
-                      setExpiresInDays(newValue);
+                      updateFormField('expiresInDays', e.target.value, 'user-typing');
                     }}
                     disabled={isLoading}
                     style={{
                       width: '100%',
                       padding: '12px',
-                      border: '2px solid #d1d5db',
+                      border: '3px solid #22c55e',
                       borderRadius: '6px',
                       fontSize: '16px',
                       backgroundColor: isLoading ? '#f3f4f6' : 'white',
@@ -1931,42 +1999,63 @@ function App() {
                 {/* Submit Button */}
                 <button
                   type="submit"
-                  disabled={isLoading || !className.trim()}
+                  disabled={isLoading || !formDisplayData.className.trim()}
                   style={{
                     width: '100%',
                     padding: '16px',
-                    backgroundColor: isLoading || !className.trim() ? '#9ca3af' : '#1d4ed8',
+                    backgroundColor: isLoading || !formDisplayData.className.trim() ? '#9ca3af' : '#1d4ed8',
                     color: 'white',
                     border: 'none',
                     borderRadius: '8px',
                     fontSize: '18px',
                     fontWeight: '600',
-                    cursor: isLoading || !className.trim() ? 'not-allowed' : 'pointer',
+                    cursor: isLoading || !formDisplayData.className.trim() ? 'not-allowed' : 'pointer',
                     pointerEvents: 'auto',
-                    opacity: isLoading || !className.trim() ? 0.6 : 1
+                    opacity: isLoading || !formDisplayData.className.trim() ? 0.6 : 1
                   }}
                 >
                   {isLoading ? '⏳ Creating...' : '🔑 Generate Login Code'}
                 </button>
               </form>
               
-              {/* Real-time Debug Values */}
+              {/* Protected State Display */}
               <div style={{ 
                 marginTop: '20px', 
                 padding: '15px', 
-                backgroundColor: '#f3f4f6', 
+                backgroundColor: '#dcfce7', 
+                border: '2px solid #22c55e',
                 borderRadius: '6px',
                 fontSize: '14px',
                 fontFamily: 'monospace'
               }}>
-                <strong>REAL-TIME FORM VALUES (Should NOT reset automatically):</strong><br/>
-                Class Name: "{className}" (Length: {className.length})<br/>
-                Block Number: "{blockNumber}" (Length: {blockNumber.length})<br/>
-                School: "{school}" (Length: {school.length})<br/>
-                Grade: "{grade}" (Length: {grade.length})<br/>
-                Max Uses: "{maxUses}"<br/>
-                Expires In Days: "{expiresInDays}"<br/>
-                <em>If these values are resetting automatically, there's a re-render issue.</em>
+                <strong>🛡️ PROTECTED FORM STATE (useRef):</strong><br/>
+                Class Name: "{persistentFormData.current.className}" (Chars: {persistentFormData.current.className.length})<br/>
+                Block Number: "{persistentFormData.current.blockNumber}" (Chars: {persistentFormData.current.blockNumber.length})<br/>
+                School: "{persistentFormData.current.school}" (Chars: {persistentFormData.current.school.length})<br/>
+                Grade: "{persistentFormData.current.grade}"<br/>
+                Max Uses: "{persistentFormData.current.maxUses}"<br/>
+                Expires In Days: "{persistentFormData.current.expiresInDays}"<br/>
+                <em style={{ color: '#059669' }}>✅ This data is stored in useRef and should NEVER reset automatically</em>
+              </div>
+              
+              {/* Display State Comparison */}
+              <div style={{ 
+                marginTop: '10px', 
+                padding: '15px', 
+                backgroundColor: '#fef2f2', 
+                border: '2px solid #ef4444',
+                borderRadius: '6px',
+                fontSize: '14px',
+                fontFamily: 'monospace'
+              }}>
+                <strong>⚠️ DISPLAY STATE (useState):</strong><br/>
+                Class Name: "{formDisplayData.className}" (Chars: {formDisplayData.className.length})<br/>
+                Block Number: "{formDisplayData.blockNumber}" (Chars: {formDisplayData.blockNumber.length})<br/>
+                School: "{formDisplayData.school}" (Chars: {formDisplayData.school.length})<br/>
+                Grade: "{formDisplayData.grade}"<br/>
+                Max Uses: "{formDisplayData.maxUses}"<br/>
+                Expires In Days: "{formDisplayData.expiresInDays}"<br/>
+                <em style={{ color: '#dc2626' }}>❌ If this resets but ref data doesn't, we've found the culprit!</em>
               </div>
             </div>
           )}
