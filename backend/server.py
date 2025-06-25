@@ -720,6 +720,101 @@ async def register(user_data: UserCreate):
         }
     }
 
+@app.post("/api/register-with-code")
+async def register_with_code(user_data: StudentRegisterWithCode):
+    # Check if user already exists
+    existing_user = await db.users.find_one({"email": user_data.email})
+    if existing_user:
+        raise HTTPException(status_code=400, detail="Email already registered")
+    
+    login_code_info = None
+    teacher_name = None
+    
+    # If login code provided, validate and get class information
+    if user_data.login_code:
+        code = user_data.login_code.upper().strip()
+        login_code = await db.login_codes.find_one({"code": code, "active": True})
+        
+        if not login_code:
+            raise HTTPException(status_code=400, detail="Invalid or inactive login code")
+        
+        # Check if expired
+        if datetime.utcnow() > login_code["expires_at"]:
+            raise HTTPException(status_code=400, detail="Login code has expired")
+        
+        # Check if max uses reached
+        if login_code["current_uses"] >= login_code["max_uses"]:
+            raise HTTPException(status_code=400, detail="Login code usage limit reached")
+        
+        # Get teacher information
+        teacher = await db.users.find_one({"id": login_code["teacher_id"]})
+        teacher_name = f"{teacher['first_name']} {teacher['last_name']}" if teacher else "Unknown Teacher"
+        
+        login_code_info = login_code
+    
+    # Create new user
+    user_id = str(uuid.uuid4())
+    hashed_password = hash_password(user_data.password)
+    
+    # Use login code info to populate user profile if available
+    user_doc = {
+        "id": user_id,
+        "email": user_data.email,
+        "password": hashed_password,
+        "first_name": user_data.first_name,
+        "last_name": user_data.last_name,
+        "is_teacher": False,  # Students only for code registration
+        "created_at": datetime.utcnow(),
+        "level": 1,
+        "total_points": 0,
+        "streak_days": 0,
+        "badges": [],
+        # Auto-populate from login code if available
+        "grade": login_code_info["grade"] if login_code_info else None,
+        "school": login_code_info["school"] if login_code_info else None,
+        "block_number": login_code_info["block_number"] if login_code_info else None,
+        "teacher": teacher_name if teacher_name else None,
+        "class_name": login_code_info["class_name"] if login_code_info else None
+    }
+    
+    await db.users.insert_one(user_doc)
+    
+    # If login code was used, increment usage counter
+    if login_code_info:
+        await db.login_codes.update_one(
+            {"id": login_code_info["id"]},
+            {"$inc": {"current_uses": 1}}
+        )
+        logger.info(f"🎓 STUDENT REGISTERED WITH CODE: {user_data.email} used code {login_code_info['code']} for class {login_code_info['class_name']}")
+    
+    # Create access token
+    access_token = create_access_token({"sub": user_id})
+    
+    return {
+        "access_token": access_token,
+        "token_type": "bearer",
+        "user": {
+            "id": user_id,
+            "email": user_data.email,
+            "first_name": user_data.first_name,
+            "last_name": user_data.last_name,
+            "is_teacher": False,
+            "level": 1,
+            "total_points": 0,
+            "badges": [],
+            "grade": user_doc["grade"],
+            "school": user_doc["school"],
+            "block_number": user_doc["block_number"],
+            "teacher": user_doc["teacher"],
+            "class_name": user_doc.get("class_name")
+        },
+        "used_login_code": login_code_info["code"] if login_code_info else None,
+        "class_info": {
+            "class_name": login_code_info["class_name"],
+            "teacher_name": teacher_name
+        } if login_code_info else None
+    }
+
 @app.post("/api/login")
 async def login(user_data: UserLogin):
     user = await db.users.find_one({"email": user_data.email})
