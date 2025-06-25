@@ -428,4 +428,47 @@ input:focus,
   .no-print {
     display: none;
   }
+  
+  .print:hidden {
+    display: none !important;
+  }
+  
+  .print:block {
+    display: block !important;
+  }
+  
+  body {
+    font-size: 12pt;
+    line-height: 1.4;
+    color: black;
+  }
+  
+  h1, h2, h3 {
+    color: black;
+    page-break-after: avoid;
+  }
+  
+  .print-page-break {
+    page-break-before: always;
+  }
+  
+  .print:break-inside-avoid {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+  
+  .print-no-margins {
+    margin: 0 !important;
+  }
+  
+  .border {
+    border: 1px solid #ccc !important;
+  }
+  
+  .bg-blue-100 { background: #e3f2fd !important; }
+  .bg-green-100 { background: #e8f5e8 !important; }
+  .bg-purple-100 { background: #f3e5f5 !important; }
+  .text-blue-800 { color: #1565c0 !important; }
+  .text-green-800 { color: #2e7d32 !important; }
+  .text-purple-800 { color: #6a1b9a !important; }
 }
