@@ -1594,7 +1594,7 @@ function App() {
   // Login Code Manager Component
   const LoginCodeManager = () => {
     const [showCreateForm, setShowCreateForm] = useState(true); // Default to true so form is visible
-    const [newCodeData, setNewCodeData] = useState({
+    const [formData, setFormData] = useState({
       class_name: '',
       block_number: '',
       school: '',
@@ -1607,27 +1607,33 @@ function App() {
       loadLoginCodes();
     }, []);
 
+    const handleInputChange = (field, value) => {
+      setFormData(prev => ({
+        ...prev,
+        [field]: value
+      }));
+    };
+
     const handleSubmit = async (e) => {
       e.preventDefault();
       
-      // Prepare data for submission, ensuring numbers are properly formatted
-      const submitData = {
-        ...newCodeData,
-        max_uses: Number(newCodeData.max_uses) || 50,
-        expires_in_days: Number(newCodeData.expires_in_days) || 30
-      };
+      console.log('Submitting form with data:', formData);
       
-      await createLoginCode(submitData);
-      
-      // Reset form but keep it visible
-      setNewCodeData({
-        class_name: '',
-        block_number: '',
-        school: '',
-        grade: '',
-        max_uses: 50,
-        expires_in_days: 30
-      });
+      try {
+        await createLoginCode(formData);
+        
+        // Reset form but keep it visible
+        setFormData({
+          class_name: '',
+          block_number: '',
+          school: '',
+          grade: '',
+          max_uses: 50,
+          expires_in_days: 30
+        });
+      } catch (error) {
+        console.error('Error creating login code:', error);
+      }
     };
 
     return (
@@ -1640,12 +1646,14 @@ function App() {
             </div>
             <div className="flex space-x-3">
               <button
+                type="button"
                 onClick={() => setShowCreateForm(!showCreateForm)}
                 className="px-6 py-3 bg-gradient-to-r from-gold-500 to-gold-600 text-navy-900 rounded-lg font-semibold hover:from-gold-600 hover:to-gold-700 transition-all"
               >
                 {showCreateForm ? '✕ Hide Form' : '+ Create New Code'}
               </button>
               <button
+                type="button"
                 onClick={() => setShowLoginCodeManager(false)}
                 className="px-6 py-3 bg-gray-500 text-white rounded-lg font-semibold hover:bg-gray-600 transition-all"
               >
@@ -1656,50 +1664,70 @@ function App() {
 
           {/* Create Form */}
           {showCreateForm && (
-            <div className="bg-gradient-to-br from-gold-50 to-gold-100 rounded-xl p-6 mb-8 border-2 border-gold-200">
-              <h3 className="text-xl font-semibold text-navy-800 mb-4">🔑 Create New Login Code</h3>
-              <form onSubmit={handleSubmit} className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="bg-blue-50 rounded-xl p-6 mb-8 border border-blue-200">
+              <h3 className="text-xl font-semibold text-blue-800 mb-4">🔑 Create New Login Code</h3>
+              <form onSubmit={handleSubmit}>
+                <div className="space-y-4">
+                  {/* Class Name */}
                   <div>
-                    <label className="block text-sm font-medium text-navy-700 mb-2">Class Name *</label>
+                    <label htmlFor="class_name" className="block text-sm font-medium text-gray-700 mb-1">
+                      Class Name * (Required)
+                    </label>
                     <input
+                      id="class_name"
+                      name="class_name"
                       type="text"
                       required
-                      autoComplete="off"
-                      className="w-full p-3 border-2 border-gold-300 rounded-lg focus:ring-2 focus:ring-gold-500 focus:border-gold-500 bg-white transition-colors"
-                      value={newCodeData.class_name}
-                      onChange={(e) => setNewCodeData(prev => ({...prev, class_name: e.target.value}))}
-                      placeholder="e.g., English 10, Greek & Latin Academy"
+                      value={formData.class_name}
+                      onChange={(e) => handleInputChange('class_name', e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      placeholder="Enter class name (e.g., English 10)"
                     />
                   </div>
+
+                  {/* Block Number */}
                   <div>
-                    <label className="block text-sm font-medium text-navy-700 mb-2">Block Number</label>
+                    <label htmlFor="block_number" className="block text-sm font-medium text-gray-700 mb-1">
+                      Block Number
+                    </label>
                     <input
+                      id="block_number"
+                      name="block_number"
                       type="text"
-                      autoComplete="off"
-                      className="w-full p-3 border-2 border-gold-300 rounded-lg focus:ring-2 focus:ring-gold-500 focus:border-gold-500 bg-white transition-colors"
-                      value={newCodeData.block_number}
-                      onChange={(e) => setNewCodeData(prev => ({...prev, block_number: e.target.value}))}
-                      placeholder="e.g., Block A, Period 3"
+                      value={formData.block_number}
+                      onChange={(e) => handleInputChange('block_number', e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      placeholder="Enter block number (e.g., Block A)"
                     />
                   </div>
+
+                  {/* School */}
                   <div>
-                    <label className="block text-sm font-medium text-navy-700 mb-2">School</label>
+                    <label htmlFor="school" className="block text-sm font-medium text-gray-700 mb-1">
+                      School
+                    </label>
                     <input
+                      id="school"
+                      name="school"
                       type="text"
-                      autoComplete="off"
-                      className="w-full p-3 border-2 border-gold-300 rounded-lg focus:ring-2 focus:ring-gold-500 focus:border-gold-500 bg-white transition-colors"
-                      value={newCodeData.school}
-                      onChange={(e) => setNewCodeData(prev => ({...prev, school: e.target.value}))}
-                      placeholder="e.g., Lincoln High School"
+                      value={formData.school}
+                      onChange={(e) => handleInputChange('school', e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      placeholder="Enter school name"
                     />
                   </div>
+
+                  {/* Grade Level */}
                   <div>
-                    <label className="block text-sm font-medium text-navy-700 mb-2">Grade Level</label>
+                    <label htmlFor="grade" className="block text-sm font-medium text-gray-700 mb-1">
+                      Grade Level
+                    </label>
                     <select
-                      className="w-full p-3 border-2 border-gold-300 rounded-lg focus:ring-2 focus:ring-gold-500 focus:border-gold-500 bg-white transition-colors cursor-pointer"
-                      value={newCodeData.grade}
-                      onChange={(e) => setNewCodeData(prev => ({...prev, grade: e.target.value}))}
+                      id="grade"
+                      name="grade"
+                      value={formData.grade}
+                      onChange={(e) => handleInputChange('grade', e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                     >
                       <option value="">Select Grade</option>
                       <option value="6th">6th Grade</option>
@@ -1711,50 +1739,63 @@ function App() {
                       <option value="12th">12th Grade</option>
                     </select>
                   </div>
+
+                  {/* Max Uses */}
                   <div>
-                    <label className="block text-sm font-medium text-navy-700 mb-2">Max Uses</label>
+                    <label htmlFor="max_uses" className="block text-sm font-medium text-gray-700 mb-1">
+                      Maximum Uses
+                    </label>
                     <input
+                      id="max_uses"
+                      name="max_uses"
                       type="number"
                       min="1"
                       max="1000"
-                      step="1"
-                      autoComplete="off"
-                      className="w-full p-3 border-2 border-gold-300 rounded-lg focus:ring-2 focus:ring-gold-500 focus:border-gold-500 bg-white transition-colors"
-                      value={newCodeData.max_uses}
-                      onChange={(e) => {
-                        const value = e.target.value;
-                        setNewCodeData(prev => ({...prev, max_uses: value === '' ? '' : Number(value)}));
-                      }}
-                      placeholder="50"
+                      value={formData.max_uses}
+                      onChange={(e) => handleInputChange('max_uses', parseInt(e.target.value) || 1)}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                     />
                   </div>
+
+                  {/* Expires In Days */}
                   <div>
-                    <label className="block text-sm font-medium text-navy-700 mb-2">Expires In (Days)</label>
+                    <label htmlFor="expires_in_days" className="block text-sm font-medium text-gray-700 mb-1">
+                      Expires In (Days)
+                    </label>
                     <input
+                      id="expires_in_days"
+                      name="expires_in_days"
                       type="number"
                       min="1"
                       max="365"
-                      step="1"
-                      autoComplete="off"
-                      className="w-full p-3 border-2 border-gold-300 rounded-lg focus:ring-2 focus:ring-gold-500 focus:border-gold-500 bg-white transition-colors"
-                      value={newCodeData.expires_in_days}
-                      onChange={(e) => {
-                        const value = e.target.value;
-                        setNewCodeData(prev => ({...prev, expires_in_days: value === '' ? '' : Number(value)}));
-                      }}
-                      placeholder="30"
+                      value={formData.expires_in_days}
+                      onChange={(e) => handleInputChange('expires_in_days', parseInt(e.target.value) || 1)}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                     />
                   </div>
-                </div>
-                <div className="pt-4">
-                  <button
-                    type="submit"
-                    className="w-full px-8 py-4 bg-gradient-to-r from-navy-600 to-navy-700 text-white rounded-lg font-semibold hover:from-navy-700 hover:to-navy-800 transition-all text-lg shadow-lg hover:shadow-xl"
-                  >
-                    🔑 Generate Login Code
-                  </button>
+
+                  {/* Submit Button */}
+                  <div className="pt-4">
+                    <button
+                      type="submit"
+                      className="w-full px-6 py-3 bg-blue-600 text-white font-semibold rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors"
+                    >
+                      🔑 Generate Login Code
+                    </button>
+                  </div>
                 </div>
               </form>
+              
+              {/* Debug Info */}
+              <div className="mt-4 p-3 bg-gray-100 rounded text-xs">
+                <strong>Debug - Current Form Data:</strong><br/>
+                Class: {formData.class_name || '(empty)'}<br/>
+                Block: {formData.block_number || '(empty)'}<br/>
+                School: {formData.school || '(empty)'}<br/>
+                Grade: {formData.grade || '(empty)'}<br/>
+                Max Uses: {formData.max_uses}<br/>
+                Expires: {formData.expires_in_days} days
+              </div>
             </div>
           )}
 
