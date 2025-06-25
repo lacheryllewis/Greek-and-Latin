@@ -986,6 +986,177 @@ function App() {
     }));
   };
 
+  // Function to sort words alphabetically or by type
+  const getSortedWords = () => {
+    if (sortOrder === 'alphabetical') {
+      return [...words].sort((a, b) => a.root.localeCompare(b.root));
+    } else if (sortOrder === 'type') {
+      return [...words].sort((a, b) => {
+        // Sort by type first (prefix, root, suffix), then alphabetically within each type
+        if (a.type !== b.type) {
+          const typeOrder = { 'prefix': 1, 'root': 2, 'suffix': 3 };
+          return typeOrder[a.type] - typeOrder[b.type];
+        }
+        return a.root.localeCompare(b.root);
+      });
+    }
+    return words;
+  };
+
+  // Printable View Component
+  const PrintableView = () => {
+    const sortedWords = getSortedWords();
+    const prefixes = sortedWords.filter(word => word.type === 'prefix');
+    const roots = sortedWords.filter(word => word.type === 'root');
+    const suffixes = sortedWords.filter(word => word.type === 'suffix');
+
+    return (
+      <div className="min-h-screen bg-white p-8 print:p-4">
+        <div className="max-w-4xl mx-auto">
+          {/* Print Header */}
+          <div className="text-center mb-8 print:mb-6">
+            <h1 className="text-3xl font-bold text-navy-800 mb-2">Greek and Latin Academy</h1>
+            <h2 className="text-xl text-gray-600 mb-4">Vocabulary Reference List</h2>
+            <div className="text-sm text-gray-500">
+              Generated on {new Date().toLocaleDateString()} • Total: {words.length} elements
+            </div>
+          </div>
+
+          {/* No Print Buttons */}
+          <div className="flex justify-between items-center mb-6 print:hidden">
+            <button
+              onClick={() => setShowPrintableView(false)}
+              className="px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors"
+            >
+              ← Back to Admin
+            </button>
+            <div className="flex space-x-2">
+              <button
+                onClick={() => setSortOrder(sortOrder === 'alphabetical' ? 'type' : 'alphabetical')}
+                className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
+              >
+                Sort: {sortOrder === 'alphabetical' ? 'Alphabetical' : 'By Type'}
+              </button>
+              <button
+                onClick={() => window.print()}
+                className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors"
+              >
+                🖨️ Print
+              </button>
+            </div>
+          </div>
+
+          {/* Content organized by type */}
+          <div className="space-y-8">
+            {/* Prefixes Section */}
+            {prefixes.length > 0 && (
+              <div>
+                <h3 className="text-2xl font-bold text-navy-800 mb-4 border-b-2 border-navy-200 pb-2">
+                  Greek and Latin Prefixes ({prefixes.length})
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {prefixes.map((word, index) => (
+                    <div key={word.id} className="border rounded-lg p-4 print:break-inside-avoid">
+                      <div className="flex items-center space-x-2 mb-2">
+                        <span className="px-2 py-1 bg-blue-100 text-blue-800 text-xs font-bold rounded">
+                          {word.origin}
+                        </span>
+                        <span className="font-bold text-lg text-navy-800">{word.root}</span>
+                      </div>
+                      <div className="text-gray-700 mb-2">
+                        <strong>Meaning:</strong> {word.meaning}
+                      </div>
+                      <div className="text-gray-600 mb-2">
+                        <strong>Definition:</strong> {word.definition}
+                      </div>
+                      <div className="text-gray-600">
+                        <strong>Examples:</strong> {word.examples.join(', ')}
+                      </div>
+                      <div className="text-xs text-gray-500 mt-2">
+                        {word.difficulty} • {word.points} points
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Roots Section */}
+            {roots.length > 0 && (
+              <div>
+                <h3 className="text-2xl font-bold text-navy-800 mb-4 border-b-2 border-navy-200 pb-2">
+                  Greek and Latin Roots ({roots.length})
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {roots.map((word, index) => (
+                    <div key={word.id} className="border rounded-lg p-4 print:break-inside-avoid">
+                      <div className="flex items-center space-x-2 mb-2">
+                        <span className="px-2 py-1 bg-purple-100 text-purple-800 text-xs font-bold rounded">
+                          {word.origin}
+                        </span>
+                        <span className="font-bold text-lg text-navy-800">{word.root}</span>
+                      </div>
+                      <div className="text-gray-700 mb-2">
+                        <strong>Meaning:</strong> {word.meaning}
+                      </div>
+                      <div className="text-gray-600 mb-2">
+                        <strong>Definition:</strong> {word.definition}
+                      </div>
+                      <div className="text-gray-600">
+                        <strong>Examples:</strong> {word.examples.join(', ')}
+                      </div>
+                      <div className="text-xs text-gray-500 mt-2">
+                        {word.difficulty} • {word.points} points
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Suffixes Section */}
+            {suffixes.length > 0 && (
+              <div>
+                <h3 className="text-2xl font-bold text-navy-800 mb-4 border-b-2 border-navy-200 pb-2">
+                  Greek and Latin Suffixes ({suffixes.length})
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {suffixes.map((word, index) => (
+                    <div key={word.id} className="border rounded-lg p-4 print:break-inside-avoid">
+                      <div className="flex items-center space-x-2 mb-2">
+                        <span className="px-2 py-1 bg-green-100 text-green-800 text-xs font-bold rounded">
+                          {word.origin}
+                        </span>
+                        <span className="font-bold text-lg text-navy-800">{word.root}</span>
+                      </div>
+                      <div className="text-gray-700 mb-2">
+                        <strong>Meaning:</strong> {word.meaning}
+                      </div>
+                      <div className="text-gray-600 mb-2">
+                        <strong>Definition:</strong> {word.definition}
+                      </div>
+                      <div className="text-gray-600">
+                        <strong>Examples:</strong> {word.examples.join(', ')}
+                      </div>
+                      <div className="text-xs text-gray-500 mt-2">
+                        {word.difficulty} • {word.points} points
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Footer for print */}
+          <div className="mt-8 pt-4 border-t text-center text-sm text-gray-500 print:block hidden">
+            Greek and Latin Academy • Empower U Educational Platform
+          </div>
+        </div>
+      </div>
+    );
+  };
+
   // Welcome Page
   if (currentView === 'welcome') {
     return (
