@@ -168,6 +168,28 @@ frontend:
         - working: true
           agent: "main"
           comment: "Frontend successfully reset to GitHub baseline with comprehensive React application including learning modes, study modes, admin dashboard, student management, gamification features, and professional UI with navy/gold branding."
+  - task: "Admin Dashboard Alphabetical Sorting"
+    implemented: true
+    working: true
+    file: "frontend/src/App.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: true
+          agent: "testing"
+          comment: "Tested the alphabetical sorting feature in the admin dashboard. The 'Sort: A-Z' / 'Sort: Type' toggle button works correctly. When 'A-Z' is selected, words are sorted alphabetically. When 'Type' is selected, words are sorted by type (prefix, root, suffix). The sorting state is maintained properly when toggling between options."
+  - task: "Admin Dashboard Printable View"
+    implemented: true
+    working: true
+    file: "frontend/src/App.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: true
+          agent: "testing"
+          comment: "Tested the printable view feature in the admin dashboard. The '🖨️ Print List' button loads the printable view with a professional layout. The printable view correctly shows organized sections for Prefixes, Roots, and Suffixes. Each word card displays meaning, definition, examples, origin labels, and difficulty/points information. The sorting controls in the printable view work properly. The 'Back to Admin' button successfully returns to the admin dashboard."
 
 metadata:
   created_by: "main_agent"
