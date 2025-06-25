@@ -1593,208 +1593,336 @@ function App() {
 
   // Login Code Manager Component
   const LoginCodeManager = () => {
-    const [showCreateForm, setShowCreateForm] = useState(true); // Default to true so form is visible
-    const [formData, setFormData] = useState({
-      class_name: '',
-      block_number: '',
-      school: '',
-      grade: '',
-      max_uses: 50,
-      expires_in_days: 30
-    });
+    const [showCreateForm, setShowCreateForm] = useState(true);
+    const [className, setClassName] = useState('');
+    const [blockNumber, setBlockNumber] = useState('');
+    const [school, setSchool] = useState('');
+    const [grade, setGrade] = useState('');
+    const [maxUses, setMaxUses] = useState('50');
+    const [expiresInDays, setExpiresInDays] = useState('30');
 
     useEffect(() => {
       loadLoginCodes();
     }, []);
 
-    const handleInputChange = (field, value) => {
-      setFormData(prev => ({
-        ...prev,
-        [field]: value
-      }));
-    };
-
-    const handleSubmit = async (e) => {
+    const handleFormSubmit = async (e) => {
       e.preventDefault();
       
-      console.log('Submitting form with data:', formData);
+      const formData = {
+        class_name: className,
+        block_number: blockNumber,
+        school: school,
+        grade: grade,
+        max_uses: parseInt(maxUses) || 50,
+        expires_in_days: parseInt(expiresInDays) || 30
+      };
+      
+      console.log('Submitting:', formData);
       
       try {
         await createLoginCode(formData);
         
-        // Reset form but keep it visible
-        setFormData({
-          class_name: '',
-          block_number: '',
-          school: '',
-          grade: '',
-          max_uses: 50,
-          expires_in_days: 30
-        });
+        // Reset form
+        setClassName('');
+        setBlockNumber('');
+        setSchool('');
+        setGrade('');
+        setMaxUses('50');
+        setExpiresInDays('30');
+        
+        alert('Login code created successfully!');
       } catch (error) {
-        console.error('Error creating login code:', error);
+        console.error('Error:', error);
+        alert('Error creating login code: ' + (error.message || 'Unknown error'));
       }
     };
 
     return (
-      <div className="max-w-6xl mx-auto">
-        <div className="bg-white rounded-2xl shadow-xl p-8">
-          <div className="flex justify-between items-center mb-8">
+      <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '20px' }}>
+        <div style={{ backgroundColor: 'white', borderRadius: '10px', padding: '30px', boxShadow: '0 4px 6px rgba(0,0,0,0.1)' }}>
+          
+          {/* Header */}
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '30px' }}>
             <div>
-              <h2 className="text-3xl font-bold text-navy-800">Login Code Management</h2>
-              <p className="text-gray-600 mt-2">Create and manage login codes for your classes</p>
+              <h2 style={{ fontSize: '28px', fontWeight: 'bold', color: '#1e293b', margin: '0 0 8px 0' }}>
+                Login Code Management
+              </h2>
+              <p style={{ color: '#6b7280', margin: 0 }}>
+                Create and manage login codes for your classes
+              </p>
             </div>
-            <div className="flex space-x-3">
+            <div style={{ display: 'flex', gap: '10px' }}>
               <button
                 type="button"
-                onClick={() => setShowCreateForm(!showCreateForm)}
-                className="px-6 py-3 bg-gradient-to-r from-gold-500 to-gold-600 text-navy-900 rounded-lg font-semibold hover:from-gold-600 hover:to-gold-700 transition-all"
+                onClick={() => {
+                  console.log('Toggle button clicked, current state:', showCreateForm);
+                  setShowCreateForm(!showCreateForm);
+                }}
+                style={{
+                  padding: '12px 24px',
+                  backgroundColor: showCreateForm ? '#ef4444' : '#3b82f6',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '8px',
+                  fontWeight: '600',
+                  cursor: 'pointer'
+                }}
               >
-                {showCreateForm ? '✕ Hide Form' : '+ Create New Code'}
+                {showCreateForm ? '✕ Hide Form' : '+ Show Form'}
               </button>
               <button
                 type="button"
                 onClick={() => setShowLoginCodeManager(false)}
-                className="px-6 py-3 bg-gray-500 text-white rounded-lg font-semibold hover:bg-gray-600 transition-all"
+                style={{
+                  padding: '12px 24px',
+                  backgroundColor: '#6b7280',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '8px',
+                  fontWeight: '600',
+                  cursor: 'pointer'
+                }}
               >
                 ← Back to Admin
               </button>
             </div>
           </div>
 
+          {/* Form Status Debug */}
+          <div style={{ 
+            padding: '10px', 
+            backgroundColor: '#fef3c7', 
+            border: '1px solid #f59e0b', 
+            borderRadius: '6px',
+            marginBottom: '20px',
+            fontSize: '14px'
+          }}>
+            <strong>DEBUG STATUS:</strong><br/>
+            Show Form: {showCreateForm ? 'TRUE - Form should be visible' : 'FALSE - Form is hidden'}<br/>
+            React State Working: {className ? `YES - Class name is "${className}"` : 'Waiting for input...'}
+          </div>
+
           {/* Create Form */}
           {showCreateForm && (
-            <div className="bg-blue-50 rounded-xl p-6 mb-8 border border-blue-200">
-              <h3 className="text-xl font-semibold text-blue-800 mb-4">🔑 Create New Login Code</h3>
-              <form onSubmit={handleSubmit}>
-                <div className="space-y-4">
-                  {/* Class Name */}
-                  <div>
-                    <label htmlFor="class_name" className="block text-sm font-medium text-gray-700 mb-1">
-                      Class Name * (Required)
-                    </label>
-                    <input
-                      id="class_name"
-                      name="class_name"
-                      type="text"
-                      required
-                      value={formData.class_name}
-                      onChange={(e) => handleInputChange('class_name', e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                      placeholder="Enter class name (e.g., English 10)"
-                    />
-                  </div>
-
-                  {/* Block Number */}
-                  <div>
-                    <label htmlFor="block_number" className="block text-sm font-medium text-gray-700 mb-1">
-                      Block Number
-                    </label>
-                    <input
-                      id="block_number"
-                      name="block_number"
-                      type="text"
-                      value={formData.block_number}
-                      onChange={(e) => handleInputChange('block_number', e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                      placeholder="Enter block number (e.g., Block A)"
-                    />
-                  </div>
-
-                  {/* School */}
-                  <div>
-                    <label htmlFor="school" className="block text-sm font-medium text-gray-700 mb-1">
-                      School
-                    </label>
-                    <input
-                      id="school"
-                      name="school"
-                      type="text"
-                      value={formData.school}
-                      onChange={(e) => handleInputChange('school', e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                      placeholder="Enter school name"
-                    />
-                  </div>
-
-                  {/* Grade Level */}
-                  <div>
-                    <label htmlFor="grade" className="block text-sm font-medium text-gray-700 mb-1">
-                      Grade Level
-                    </label>
-                    <select
-                      id="grade"
-                      name="grade"
-                      value={formData.grade}
-                      onChange={(e) => handleInputChange('grade', e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                    >
-                      <option value="">Select Grade</option>
-                      <option value="6th">6th Grade</option>
-                      <option value="7th">7th Grade</option>
-                      <option value="8th">8th Grade</option>
-                      <option value="9th">9th Grade</option>
-                      <option value="10th">10th Grade</option>
-                      <option value="11th">11th Grade</option>
-                      <option value="12th">12th Grade</option>
-                    </select>
-                  </div>
-
-                  {/* Max Uses */}
-                  <div>
-                    <label htmlFor="max_uses" className="block text-sm font-medium text-gray-700 mb-1">
-                      Maximum Uses
-                    </label>
-                    <input
-                      id="max_uses"
-                      name="max_uses"
-                      type="number"
-                      min="1"
-                      max="1000"
-                      value={formData.max_uses}
-                      onChange={(e) => handleInputChange('max_uses', parseInt(e.target.value) || 1)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                    />
-                  </div>
-
-                  {/* Expires In Days */}
-                  <div>
-                    <label htmlFor="expires_in_days" className="block text-sm font-medium text-gray-700 mb-1">
-                      Expires In (Days)
-                    </label>
-                    <input
-                      id="expires_in_days"
-                      name="expires_in_days"
-                      type="number"
-                      min="1"
-                      max="365"
-                      value={formData.expires_in_days}
-                      onChange={(e) => handleInputChange('expires_in_days', parseInt(e.target.value) || 1)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                    />
-                  </div>
-
-                  {/* Submit Button */}
-                  <div className="pt-4">
-                    <button
-                      type="submit"
-                      className="w-full px-6 py-3 bg-blue-600 text-white font-semibold rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors"
-                    >
-                      🔑 Generate Login Code
-                    </button>
-                  </div>
+            <div style={{ 
+              backgroundColor: '#eff6ff', 
+              padding: '30px', 
+              borderRadius: '10px', 
+              border: '2px solid #3b82f6',
+              marginBottom: '30px'
+            }}>
+              <h3 style={{ fontSize: '20px', fontWeight: '600', color: '#1e40af', marginBottom: '20px' }}>
+                🔑 Create New Login Code
+              </h3>
+              
+              <form onSubmit={handleFormSubmit} style={{ pointerEvents: 'auto' }}>
+                
+                {/* Class Name */}
+                <div style={{ marginBottom: '20px' }}>
+                  <label style={{ display: 'block', fontWeight: '500', marginBottom: '8px', color: '#374151' }}>
+                    Class Name * (Required)
+                  </label>
+                  <input
+                    type="text"
+                    value={className}
+                    onChange={(e) => {
+                      console.log('Class name changing to:', e.target.value);
+                      setClassName(e.target.value);
+                    }}
+                    onFocus={() => console.log('Class name input focused')}
+                    onClick={() => console.log('Class name input clicked')}
+                    required
+                    style={{
+                      width: '100%',
+                      padding: '12px',
+                      border: '2px solid #d1d5db',
+                      borderRadius: '6px',
+                      fontSize: '16px',
+                      backgroundColor: 'white',
+                      pointerEvents: 'auto',
+                      cursor: 'text'
+                    }}
+                    placeholder="Enter class name (e.g., English 10)"
+                  />
                 </div>
+
+                {/* Block Number */}
+                <div style={{ marginBottom: '20px' }}>
+                  <label style={{ display: 'block', fontWeight: '500', marginBottom: '8px', color: '#374151' }}>
+                    Block Number
+                  </label>
+                  <input
+                    type="text"
+                    value={blockNumber}
+                    onChange={(e) => {
+                      console.log('Block number changing to:', e.target.value);
+                      setBlockNumber(e.target.value);
+                    }}
+                    style={{
+                      width: '100%',
+                      padding: '12px',
+                      border: '2px solid #d1d5db',
+                      borderRadius: '6px',
+                      fontSize: '16px',
+                      backgroundColor: 'white',
+                      pointerEvents: 'auto',
+                      cursor: 'text'
+                    }}
+                    placeholder="Enter block number (e.g., Block A)"
+                  />
+                </div>
+
+                {/* School */}
+                <div style={{ marginBottom: '20px' }}>
+                  <label style={{ display: 'block', fontWeight: '500', marginBottom: '8px', color: '#374151' }}>
+                    School
+                  </label>
+                  <input
+                    type="text"
+                    value={school}
+                    onChange={(e) => {
+                      console.log('School changing to:', e.target.value);
+                      setSchool(e.target.value);
+                    }}
+                    style={{
+                      width: '100%',
+                      padding: '12px',
+                      border: '2px solid #d1d5db',
+                      borderRadius: '6px',
+                      fontSize: '16px',
+                      backgroundColor: 'white',
+                      pointerEvents: 'auto',
+                      cursor: 'text'
+                    }}
+                    placeholder="Enter school name"
+                  />
+                </div>
+
+                {/* Grade Level */}
+                <div style={{ marginBottom: '20px' }}>
+                  <label style={{ display: 'block', fontWeight: '500', marginBottom: '8px', color: '#374151' }}>
+                    Grade Level
+                  </label>
+                  <select
+                    value={grade}
+                    onChange={(e) => {
+                      console.log('Grade changing to:', e.target.value);
+                      setGrade(e.target.value);
+                    }}
+                    onClick={() => console.log('Grade dropdown clicked')}
+                    style={{
+                      width: '100%',
+                      padding: '12px',
+                      border: '2px solid #d1d5db',
+                      borderRadius: '6px',
+                      fontSize: '16px',
+                      backgroundColor: 'white',
+                      pointerEvents: 'auto',
+                      cursor: 'pointer'
+                    }}
+                  >
+                    <option value="">Select Grade</option>
+                    <option value="6th">6th Grade</option>
+                    <option value="7th">7th Grade</option>
+                    <option value="8th">8th Grade</option>
+                    <option value="9th">9th Grade</option>
+                    <option value="10th">10th Grade</option>
+                    <option value="11th">11th Grade</option>
+                    <option value="12th">12th Grade</option>
+                  </select>
+                </div>
+
+                {/* Max Uses */}
+                <div style={{ marginBottom: '20px' }}>
+                  <label style={{ display: 'block', fontWeight: '500', marginBottom: '8px', color: '#374151' }}>
+                    Maximum Uses
+                  </label>
+                  <input
+                    type="number"
+                    min="1"
+                    max="1000"
+                    value={maxUses}
+                    onChange={(e) => {
+                      console.log('Max uses changing to:', e.target.value);
+                      setMaxUses(e.target.value);
+                    }}
+                    style={{
+                      width: '100%',
+                      padding: '12px',
+                      border: '2px solid #d1d5db',
+                      borderRadius: '6px',
+                      fontSize: '16px',
+                      backgroundColor: 'white',
+                      pointerEvents: 'auto',
+                      cursor: 'text'
+                    }}
+                  />
+                </div>
+
+                {/* Expires In Days */}
+                <div style={{ marginBottom: '20px' }}>
+                  <label style={{ display: 'block', fontWeight: '500', marginBottom: '8px', color: '#374151' }}>
+                    Expires In (Days)
+                  </label>
+                  <input
+                    type="number"
+                    min="1"
+                    max="365"
+                    value={expiresInDays}
+                    onChange={(e) => {
+                      console.log('Expires in days changing to:', e.target.value);
+                      setExpiresInDays(e.target.value);
+                    }}
+                    style={{
+                      width: '100%',
+                      padding: '12px',
+                      border: '2px solid #d1d5db',
+                      borderRadius: '6px',
+                      fontSize: '16px',
+                      backgroundColor: 'white',
+                      pointerEvents: 'auto',
+                      cursor: 'text'
+                    }}
+                  />
+                </div>
+
+                {/* Submit Button */}
+                <button
+                  type="submit"
+                  onClick={() => console.log('Submit button clicked')}
+                  style={{
+                    width: '100%',
+                    padding: '16px',
+                    backgroundColor: '#1d4ed8',
+                    color: 'white',
+                    border: 'none',
+                    borderRadius: '8px',
+                    fontSize: '18px',
+                    fontWeight: '600',
+                    cursor: 'pointer',
+                    pointerEvents: 'auto'
+                  }}
+                >
+                  🔑 Generate Login Code
+                </button>
               </form>
               
-              {/* Debug Info */}
-              <div className="mt-4 p-3 bg-gray-100 rounded text-xs">
-                <strong>Debug - Current Form Data:</strong><br/>
-                Class: {formData.class_name || '(empty)'}<br/>
-                Block: {formData.block_number || '(empty)'}<br/>
-                School: {formData.school || '(empty)'}<br/>
-                Grade: {formData.grade || '(empty)'}<br/>
-                Max Uses: {formData.max_uses}<br/>
-                Expires: {formData.expires_in_days} days
+              {/* Real-time Debug Values */}
+              <div style={{ 
+                marginTop: '20px', 
+                padding: '15px', 
+                backgroundColor: '#f3f4f6', 
+                borderRadius: '6px',
+                fontSize: '14px',
+                fontFamily: 'monospace'
+              }}>
+                <strong>REAL-TIME FORM VALUES:</strong><br/>
+                Class Name: "{className}"<br/>
+                Block Number: "{blockNumber}"<br/>
+                School: "{school}"<br/>
+                Grade: "{grade}"<br/>
+                Max Uses: "{maxUses}"<br/>
+                Expires In Days: "{expiresInDays}"
               </div>
             </div>
           )}
