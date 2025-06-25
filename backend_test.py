@@ -1373,7 +1373,274 @@ def test_student_management():
     print(f"✅ Student management testing completed successfully")
     return True
 
+def test_login_code_management():
+    """Test the login code management APIs"""
+    print("\n🔍 Testing Login Code Management APIs...")
+    
+    # First, login as admin
+    success, admin_token = test_admin_login_specific()
+    if not success:
+        print("❌ Admin login failed, stopping login code management test")
+        return False
+    
+    tester = GreekLatinAPITester()
+    
+    # 1. Get existing login codes
+    print("\n🔍 Getting existing login codes...")
+    success, login_codes = tester.run_test(
+        "Get Login Codes", 
+        "GET", 
+        "admin/login-codes", 
+        200, 
+        token=admin_token
+    )
+    
+    if not success:
+        print("❌ Failed to get login codes")
+        return False
+    
+    initial_code_count = len(login_codes)
+    print(f"✅ Found {initial_code_count} existing login codes")
+    
+    # Check if VBNFTPUV exists
+    vbnftpuv_exists = False
+    vbnftpuv_id = None
+    for code in login_codes:
+        if code.get('code') == 'VBNFTPUV':
+            vbnftpuv_exists = True
+            vbnftpuv_id = code.get('id')
+            print(f"✅ Found test code VBNFTPUV with ID: {vbnftpuv_id}")
+            break
+    
+    # 2. Create a new login code
+    login_code_data = {
+        "class_name": "Test Greek Academy Class",
+        "block_number": "A1",
+        "school": "Test School",
+        "grade": "7th Grade",
+        "max_uses": 30,
+        "expires_in_days": 14
+    }
+    
+    print("\n🔍 Creating new login code...")
+    success, create_response = tester.run_test(
+        "Create Login Code", 
+        "POST", 
+        "admin/create-login-code", 
+        200, 
+        data=login_code_data, 
+        token=admin_token
+    )
+    
+    if not success:
+        print("❌ Login code creation failed")
+        return False
+    
+    print(f"✅ Login code creation successful: {create_response}")
+    
+    # Get the login code details
+    login_code_id = create_response.get('login_code', {}).get('id')
+    login_code_value = create_response.get('login_code', {}).get('code')
+    
+    if not login_code_id or not login_code_value:
+        print("❌ No login code ID or value returned")
+        return False
+    
+    print(f"✅ Login code created with ID: {login_code_id}")
+    print(f"✅ Login code value: {login_code_value}")
+    
+    # 3. Verify the code was added
+    print("\n🔍 Verifying login code was added...")
+    success, updated_codes = tester.run_test(
+        "Get Updated Login Codes", 
+        "GET", 
+        "admin/login-codes", 
+        200, 
+        token=admin_token
+    )
+    
+    if not success:
+        print("❌ Failed to get updated login codes")
+        return False
+    
+    updated_code_count = len(updated_codes)
+    print(f"✅ Found {updated_code_count} login codes (should be {initial_code_count + 1})")
+    
+    if updated_code_count != initial_code_count + 1:
+        print(f"❌ Login code count mismatch: expected {initial_code_count + 1}, got {updated_code_count}")
+        return False
+    
+    # Find our new login code
+    new_code = None
+    for code in updated_codes:
+        if code.get('id') == login_code_id:
+            new_code = code
+            break
+    
+    if not new_code:
+        print("❌ New login code not found in codes list")
+        return False
+    
+    # 4. Validate the test login code VBNFTPUV
+    print("\n🔍 Validating test login code VBNFTPUV...")
+    
+    # If VBNFTPUV doesn't exist, use our new code
+    test_code = 'VBNFTPUV' if vbnftpuv_exists else login_code_value
+    
+    validation_data = {
+        "code": test_code
+    }
+    
+    success, validation_response = tester.run_test(
+        "Validate Login Code", 
+        "POST", 
+        "validate-login-code", 
+        200, 
+        data=validation_data
+    )
+    
+    if not success:
+        print(f"❌ Login code validation failed for code: {test_code}")
+        return False
+    
+    print(f"✅ Login code validation successful: {validation_response}")
+    
+    # Verify validation response contains class info
+    class_info = validation_response.get('class_info', {})
+    if not class_info:
+        print("❌ No class info in validation response")
+        return False
+    
+    print(f"✅ Validated class name: {class_info.get('class_name')}")
+    print(f"✅ Validated teacher: {class_info.get('teacher_name')}")
+    
+    # 5. Register a new student using the login code
+    print("\n🔍 Registering new student with login code...")
+    
+    student_data = {
+        "email": f"student_{uuid.uuid4().hex[:8]}@test.com",
+        "password": "Student123!",
+        "first_name": "Test",
+        "last_name": "CodeStudent",
+        "login_code": test_code
+    }
+    
+    success, register_response = tester.run_test(
+        "Register Student with Code", 
+        "POST", 
+        "register-with-code", 
+        200, 
+        data=student_data
+    )
+    
+    if not success:
+        print(f"❌ Student registration with code failed")
+        return False
+    
+    print(f"✅ Student registration with code successful: {register_response}")
+    
+    # Verify student profile was populated with class info
+    user_data = register_response.get('user', {})
+    if not user_data:
+        print("❌ No user data in registration response")
+        return False
+    
+    # Check if class info was populated
+    if not user_data.get('class_name'):
+        print("❌ Class name not populated in student profile")
+        return False
+    
+    if not user_data.get('teacher'):
+        print("❌ Teacher not populated in student profile")
+        return False
+    
+    print(f"✅ Student profile populated with class name: {user_data.get('class_name')}")
+    print(f"✅ Student profile populated with teacher: {user_data.get('teacher')}")
+    
+    # 6. Toggle code active/inactive
+    print("\n🔍 Toggling login code active/inactive...")
+    
+    # Use our new code ID
+    toggle_code_id = login_code_id
+    
+    success, toggle_response = tester.run_test(
+        "Toggle Login Code", 
+        "PUT", 
+        f"admin/login-code/{toggle_code_id}/toggle", 
+        200, 
+        token=admin_token
+    )
+    
+    if not success:
+        print("❌ Login code toggle failed")
+        return False
+    
+    print(f"✅ Login code toggle successful: {toggle_response}")
+    
+    # Verify the code was toggled
+    new_active_status = toggle_response.get('active')
+    if new_active_status is None:
+        print("❌ No active status in toggle response")
+        return False
+    
+    print(f"✅ Login code active status toggled to: {new_active_status}")
+    
+    # 7. Delete the test code
+    print("\n🔍 Deleting test login code...")
+    
+    # Use our new code ID
+    delete_code_id = login_code_id
+    
+    success, delete_response = tester.run_test(
+        "Delete Login Code", 
+        "DELETE", 
+        f"admin/login-code/{delete_code_id}", 
+        200, 
+        token=admin_token
+    )
+    
+    if not success:
+        print("❌ Login code deletion failed")
+        return False
+    
+    print(f"✅ Login code deletion successful: {delete_response}")
+    
+    # 8. Verify the code was deleted
+    print("\n🔍 Verifying login code was deleted...")
+    success, final_codes = tester.run_test(
+        "Get Final Login Codes", 
+        "GET", 
+        "admin/login-codes", 
+        200, 
+        token=admin_token
+    )
+    
+    if not success:
+        print("❌ Failed to get final login codes")
+        return False
+    
+    final_code_count = len(final_codes)
+    print(f"✅ Found {final_code_count} login codes (should be {initial_code_count})")
+    
+    # Find our deleted login code
+    deleted_code = None
+    for code in final_codes:
+        if code.get('id') == delete_code_id:
+            deleted_code = code
+            break
+    
+    if deleted_code:
+        print("❌ Deleted login code still found in codes list")
+        return False
+    
+    print(f"✅ Login code deletion verification successful")
+    print(f"✅ Login code management testing completed successfully")
+    return True
+
 def main():
+    # Run login code management test
+    login_code_management_success = test_login_code_management()
+    
     # Run specific admin login test
     admin_test_success, _ = test_admin_login_specific()
     
@@ -1393,7 +1660,7 @@ def main():
     tester = GreekLatinAPITester()
     all_tests_success = tester.run_all_tests()
     
-    return 0 if (admin_test_success and backup_system_success and 
+    return 0 if (login_code_management_success and admin_test_success and backup_system_success and 
                 slide_management_success and slide_test_success and 
                 student_management_success and all_tests_success) else 1
 
