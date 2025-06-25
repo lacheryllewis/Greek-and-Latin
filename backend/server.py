@@ -1077,6 +1077,172 @@ async def restore_backup(backup_data: dict, current_user: dict = Depends(get_cur
         "pre_restore_backup": current_backup_collection
     }
 
+# Login Code Management Endpoints
+
+@app.post("/api/admin/create-login-code")
+async def create_login_code(code_data: LoginCodeCreate, current_user: dict = Depends(get_current_user)):
+    if not current_user.get("is_teacher"):
+        raise HTTPException(status_code=403, detail="Admin access required")
+    
+    # Generate unique code
+    code = generate_login_code()
+    
+    # Ensure code is unique
+    while await db.login_codes.find_one({"code": code, "active": True}):
+        code = generate_login_code()
+    
+    # Calculate expiration date
+    expires_at = datetime.utcnow() + timedelta(days=code_data.expires_in_days)
+    
+    login_code_doc = {
+        "id": str(uuid.uuid4()),
+        "code": code,
+        "teacher_id": current_user["id"],
+        "class_name": code_data.class_name,
+        "block_number": code_data.block_number,
+        "school": code_data.school,
+        "grade": code_data.grade,
+        "max_uses": code_data.max_uses,
+        "current_uses": 0,
+        "expires_at": expires_at,
+        "active": True,
+        "created_at": datetime.utcnow()
+    }
+    
+    await db.login_codes.insert_one(login_code_doc)
+    
+    logger.info(f"✅ LOGIN CODE CREATED: {code} for class {code_data.class_name} by teacher {current_user['email']}")
+    
+    return {
+        "status": "created",
+        "login_code": {
+            "id": login_code_doc["id"],
+            "code": code,
+            "class_name": code_data.class_name,
+            "block_number": code_data.block_number,
+            "school": code_data.school,
+            "grade": code_data.grade,
+            "max_uses": code_data.max_uses,
+            "expires_at": expires_at.isoformat(),
+            "created_at": login_code_doc["created_at"].isoformat()
+        }
+    }
+
+@app.get("/api/admin/login-codes")
+async def get_login_codes(current_user: dict = Depends(get_current_user)):
+    if not current_user.get("is_teacher"):
+        raise HTTPException(status_code=403, detail="Admin access required")
+    
+    login_codes = []
+    async for code in db.login_codes.find({"teacher_id": current_user["id"]}).sort("created_at", -1):
+        code.pop('_id', None)
+        
+        # Check if code is expired
+        is_expired = datetime.utcnow() > code["expires_at"]
+        
+        login_codes.append({
+            "id": code["id"],
+            "code": code["code"],
+            "class_name": code["class_name"],
+            "block_number": code["block_number"],
+            "school": code["school"],
+            "grade": code["grade"],
+            "max_uses": code["max_uses"],
+            "current_uses": code["current_uses"],
+            "expires_at": code["expires_at"].isoformat(),
+            "active": code["active"],
+            "is_expired": is_expired,
+            "created_at": code["created_at"].isoformat()
+        })
+    
+    return login_codes
+
+@app.put("/api/admin/login-code/{code_id}/toggle")
+async def toggle_login_code(code_id: str, current_user: dict = Depends(get_current_user)):
+    if not current_user.get("is_teacher"):
+        raise HTTPException(status_code=403, detail="Admin access required")
+    
+    # Find the code
+    code = await db.login_codes.find_one({"id": code_id, "teacher_id": current_user["id"]})
+    if not code:
+        raise HTTPException(status_code=404, detail="Login code not found")
+    
+    # Toggle active status
+    new_active_status = not code["active"]
+    
+    result = await db.login_codes.update_one(
+        {"id": code_id},
+        {"$set": {"active": new_active_status}}
+    )
+    
+    if result.matched_count == 0:
+        raise HTTPException(status_code=404, detail="Login code not found")
+    
+    logger.info(f"🔄 LOGIN CODE TOGGLED: {code['code']} -> active: {new_active_status}")
+    
+    return {
+        "status": "updated",
+        "code": code["code"],
+        "active": new_active_status
+    }
+
+@app.delete("/api/admin/login-code/{code_id}")
+async def delete_login_code(code_id: str, current_user: dict = Depends(get_current_user)):
+    if not current_user.get("is_teacher"):
+        raise HTTPException(status_code=403, detail="Admin access required")
+    
+    # Find the code first to get details for logging
+    code = await db.login_codes.find_one({"id": code_id, "teacher_id": current_user["id"]})
+    if not code:
+        raise HTTPException(status_code=404, detail="Login code not found")
+    
+    result = await db.login_codes.delete_one({"id": code_id, "teacher_id": current_user["id"]})
+    
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Login code not found")
+    
+    logger.info(f"🗑️ LOGIN CODE DELETED: {code['code']} for class {code['class_name']}")
+    
+    return {"status": "deleted", "code": code["code"]}
+
+@app.post("/api/validate-login-code")
+async def validate_login_code(code_data: dict):
+    """Validate a login code and return class information"""
+    code = code_data.get("code", "").upper().strip()
+    
+    if not code:
+        raise HTTPException(status_code=400, detail="Login code is required")
+    
+    # Find the login code
+    login_code = await db.login_codes.find_one({"code": code, "active": True})
+    
+    if not login_code:
+        raise HTTPException(status_code=404, detail="Invalid or inactive login code")
+    
+    # Check if expired
+    if datetime.utcnow() > login_code["expires_at"]:
+        raise HTTPException(status_code=400, detail="Login code has expired")
+    
+    # Check if max uses reached
+    if login_code["current_uses"] >= login_code["max_uses"]:
+        raise HTTPException(status_code=400, detail="Login code usage limit reached")
+    
+    # Get teacher information
+    teacher = await db.users.find_one({"id": login_code["teacher_id"]})
+    teacher_name = f"{teacher['first_name']} {teacher['last_name']}" if teacher else "Unknown Teacher"
+    
+    return {
+        "valid": True,
+        "class_info": {
+            "class_name": login_code["class_name"],
+            "block_number": login_code["block_number"],
+            "school": login_code["school"],
+            "grade": login_code["grade"],
+            "teacher_name": teacher_name,
+            "uses_remaining": login_code["max_uses"] - login_code["current_uses"]
+        }
+    }
+
 @app.get("/api/admin/student/{student_id}")
 async def get_student_profile(student_id: str, current_user: dict = Depends(get_current_user)):
     if not current_user.get("is_teacher"):
