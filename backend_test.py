@@ -5,7 +5,7 @@ from datetime import datetime
 import json
 
 class GreekLatinAPITester:
-    def __init__(self, base_url="https://5bfa331b-eeb3-4d9a-b920-01c65ef78380.preview.emergentagent.com"):
+    def __init__(self, base_url="https://af083956-e507-4a08-8709-0444780b5330.preview.emergentagent.com"):
         self.base_url = base_url
         self.token = None
         self.user_id = None
