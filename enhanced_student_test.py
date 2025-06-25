@@ -5,7 +5,7 @@ from datetime import datetime
 import json
 
 class EnhancedStudentTester:
-    def __init__(self, base_url="https://af083956-e507-4a08-8709-0444780b5330.preview.emergentagent.com"):
+    def __init__(self, base_url="https://5d5629ef-abcd-46b5-9d31-959875b602ef.preview.emergentagent.com"):
         self.base_url = base_url
         self.token = None
         self.user_id = None
