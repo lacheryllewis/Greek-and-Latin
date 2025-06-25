@@ -1454,13 +1454,16 @@ function App() {
               
               {/* Student Profile Information */}
               <div className="border-t pt-4">
-                <h4 className="text-sm font-semibold text-gray-700 mb-3">Student Information</h4>
+                <h4 className="text-sm font-semibold text-gray-700 mb-3">
+                  Student Information {validatedCodeInfo && <span className="text-green-600 text-xs">(Auto-filled from login code)</span>}
+                </h4>
                 <div className="grid grid-cols-2 gap-3">
                   <select
                     className="p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gold-500 focus:border-transparent"
-                    value={registerData.grade}
+                    value={validatedCodeInfo?.grade || registerData.grade}
                     onChange={(e) => setRegisterData({...registerData, grade: e.target.value})}
-                    required
+                    required={!validatedCodeInfo}
+                    disabled={validatedCodeInfo && validatedCodeInfo.grade}
                   >
                     <option value="">Select Grade</option>
                     <option value="6th">6th Grade</option>
@@ -1475,26 +1478,29 @@ function App() {
                     type="text"
                     placeholder="Block Number"
                     className="p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gold-500 focus:border-transparent"
-                    value={registerData.block_number}
+                    value={validatedCodeInfo?.block_number || registerData.block_number}
                     onChange={(e) => setRegisterData({...registerData, block_number: e.target.value})}
-                    required
+                    required={!validatedCodeInfo}
+                    disabled={validatedCodeInfo && validatedCodeInfo.block_number}
                   />
                 </div>
                 <input
                   type="text"
                   placeholder="School Name"
                   className="w-full mt-3 p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gold-500 focus:border-transparent"
-                  value={registerData.school}
+                  value={validatedCodeInfo?.school || registerData.school}
                   onChange={(e) => setRegisterData({...registerData, school: e.target.value})}
-                  required
+                  required={!validatedCodeInfo}
+                  disabled={validatedCodeInfo && validatedCodeInfo.school}
                 />
                 <input
                   type="text"
                   placeholder="Teacher Name"
                   className="w-full mt-3 p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gold-500 focus:border-transparent"
-                  value={registerData.teacher}
+                  value={validatedCodeInfo?.teacher_name || registerData.teacher}
                   onChange={(e) => setRegisterData({...registerData, teacher: e.target.value})}
-                  required
+                  required={!validatedCodeInfo}
+                  disabled={validatedCodeInfo && validatedCodeInfo.teacher_name}
                 />
               </div>
               
