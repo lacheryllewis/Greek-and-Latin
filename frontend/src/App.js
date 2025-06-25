@@ -1157,6 +1157,11 @@ function App() {
     );
   };
 
+  // Printable View
+  if (showPrintableView) {
+    return <PrintableView />;
+  }
+
   // Welcome Page
   if (currentView === 'welcome') {
     return (
