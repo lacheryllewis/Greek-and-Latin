@@ -606,10 +606,6 @@ function App() {
   const [quizScore, setQuizScore] = useState(0);
   const [quizQuestion, setQuizQuestion] = useState(0);
   const [adminUsers, setAdminUsers] = useState([]);
-  const [selectedStudent, setSelectedStudent] = useState(null);
-  const [showStudentEditor, setShowStudentEditor] = useState(false);
-  const [showCreateStudent, setShowCreateStudent] = useState(false);
-  const [studentAnalytics, setStudentAnalytics] = useState({});
   const [userProfile, setUserProfile] = useState(null);
   const [leaderboard, setLeaderboard] = useState([]);
   const [showSlideCreator, setShowSlideCreator] = useState(false);
@@ -617,7 +613,9 @@ function App() {
   const [showBackupManager, setShowBackupManager] = useState(false);
   const [showStudentManager, setShowStudentManager] = useState(false);
   const [showStudentProfile, setShowStudentProfile] = useState(false);
+  const [selectedStudent, setSelectedStudent] = useState(null);
   const [editingStudent, setEditingStudent] = useState(null);
+  const [studentAnalytics, setStudentAnalytics] = useState(null);
   const [backups, setBackups] = useState([]);
   const [editingSlide, setEditingSlide] = useState(null);
 
@@ -806,80 +804,6 @@ function App() {
       setAdminUsers(response.data);
     } catch (error) {
       console.error('Failed to load admin data:', error);
-    }
-  };
-
-  const handleUpdateStudent = async (studentId, studentData) => {
-    try {
-      const response = await axios.put(`${API_BASE_URL}/api/admin/student/${studentId}`, studentData);
-      if (response.status === 200) {
-        await loadAdminData(); // Refresh admin data
-        setShowStudentEditor(false);
-        setSelectedStudent(null);
-        alert('Student profile updated successfully!');
-      }
-    } catch (error) {
-      console.error('Student update error:', error);
-      alert('Failed to update student: ' + (error.response?.data?.detail || 'Unknown error'));
-    }
-  };
-
-  const handleDeleteStudent = async (studentId, studentName) => {
-    const confirmed = window.confirm(
-      `⚠️ DELETE STUDENT CONFIRMATION\n\n` +
-      `Are you sure you want to delete ${studentName}?\n\n` +
-      `This will permanently remove:\n` +
-      `• Student profile and account\n` +
-      `• All study sessions and progress\n` +
-      `• All quiz results and scores\n\n` +
-      `This action cannot be undone.`
-    );
-
-    if (!confirmed) return;
-
-    try {
-      const response = await axios.delete(`${API_BASE_URL}/api/admin/student/${studentId}`);
-      if (response.status === 200) {
-        await loadAdminData(); // Refresh admin data
-        alert(`✅ Student ${studentName} has been successfully deleted.`);
-      }
-    } catch (error) {
-      console.error('Student deletion error:', error);
-      if (error.response?.status === 404) {
-        alert(`❌ Student ${studentName} not found. They may have already been deleted.`);
-      } else if (error.response?.status === 400) {
-        alert(`❌ Cannot delete this account: ${error.response.data.detail}`);
-      } else {
-        alert(`❌ Failed to delete student ${studentName}: ${error.response?.data?.detail || 'Unknown error'}`);
-      }
-    }
-  };
-
-  const handleCreateStudent = async (studentData) => {
-    try {
-      const response = await axios.post(`${API_BASE_URL}/api/admin/create-student`, studentData);
-      if (response.status === 200) {
-        await loadAdminData(); // Refresh admin data
-        setShowCreateStudent(false);
-        alert(response.data.message);
-      }
-    } catch (error) {
-      console.error('Student creation error:', error);
-      alert('Failed to create student: ' + (error.response?.data?.detail || 'Unknown error'));
-    }
-  };
-
-  const loadStudentAnalytics = async (studentId) => {
-    try {
-      const response = await axios.get(`${API_BASE_URL}/api/admin/student/${studentId}`);
-      setStudentAnalytics(prev => ({
-        ...prev,
-        [studentId]: response.data.analytics
-      }));
-      return response.data;
-    } catch (error) {
-      console.error('Failed to load student analytics:', error);
-      return null;
     }
   };
 
@@ -1323,249 +1247,6 @@ function App() {
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gold-500 mx-auto mb-4"></div>
           <p className="text-lg">Loading your Academy journey...</p>
           <JamaalCharacter message="Getting everything ready for you!" size="small" />
-        </div>
-      </div>
-    );
-  }
-
-  // Student Editor Modal
-  if (showStudentEditor && selectedStudent) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-navy-900 via-navy-800 to-navy-700 p-6">
-        <div className="max-w-2xl mx-auto bg-white rounded-2xl shadow-2xl p-8">
-          <div className="flex justify-between items-center mb-6">
-            <h2 className="text-2xl font-bold text-navy-800">✏️ Edit Student Profile</h2>
-            <button
-              onClick={() => {
-                setShowStudentEditor(false);
-                setSelectedStudent(null);
-              }}
-              className="text-gray-400 hover:text-gray-600"
-            >
-              ✕
-            </button>
-          </div>
-          
-          <form onSubmit={(e) => {
-            e.preventDefault();
-            const formData = new FormData(e.target);
-            const studentData = {
-              first_name: formData.get('first_name'),
-              last_name: formData.get('last_name'),
-              email: formData.get('email'),
-              grade: formData.get('grade'),
-              school: formData.get('school'),
-              block_number: formData.get('block_number'),
-              teacher: formData.get('teacher')
-            };
-            handleUpdateStudent(selectedStudent.id, studentData);
-          }} className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
-              <input
-                type="text"
-                name="first_name"
-                placeholder="First Name"
-                defaultValue={selectedStudent.first_name}
-                className="p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gold-500 focus:border-transparent"
-                required
-              />
-              <input
-                type="text"
-                name="last_name"
-                placeholder="Last Name"
-                defaultValue={selectedStudent.last_name}
-                className="p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gold-500 focus:border-transparent"
-                required
-              />
-            </div>
-            <input
-              type="email"
-              name="email"
-              placeholder="Email"
-              defaultValue={selectedStudent.email}
-              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gold-500 focus:border-transparent"
-              required
-            />
-            <div className="grid grid-cols-2 gap-4">
-              <select
-                name="grade"
-                defaultValue={selectedStudent.grade || ''}
-                className="p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gold-500 focus:border-transparent"
-                required
-              >
-                <option value="">Select Grade</option>
-                <option value="6th">6th Grade</option>
-                <option value="7th">7th Grade</option>
-                <option value="8th">8th Grade</option>
-                <option value="9th">9th Grade</option>
-                <option value="10th">10th Grade</option>
-                <option value="11th">11th Grade</option>
-                <option value="12th">12th Grade</option>
-              </select>
-              <input
-                type="text"
-                name="block_number"
-                placeholder="Block Number"
-                defaultValue={selectedStudent.block_number || ''}
-                className="p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gold-500 focus:border-transparent"
-                required
-              />
-            </div>
-            <input
-              type="text"
-              name="school"
-              placeholder="School Name"
-              defaultValue={selectedStudent.school || ''}
-              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gold-500 focus:border-transparent"
-              required
-            />
-            <input
-              type="text"
-              name="teacher"
-              placeholder="Teacher Name"
-              defaultValue={selectedStudent.teacher || ''}
-              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gold-500 focus:border-transparent"
-              required
-            />
-            
-            <div className="flex space-x-4 pt-4">
-              <button
-                type="submit"
-                className="flex-1 bg-gradient-to-r from-gold-500 to-gold-600 text-navy-900 py-3 rounded-lg font-semibold hover:from-gold-600 hover:to-gold-700 transition-all"
-              >
-                💾 Update Student
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  setShowStudentEditor(false);
-                  setSelectedStudent(null);
-                }}
-                className="flex-1 bg-gray-300 text-gray-700 py-3 rounded-lg font-semibold hover:bg-gray-400 transition-all"
-              >
-                Cancel
-              </button>
-            </div>
-          </form>
-        </div>
-      </div>
-    );
-  }
-
-  // Create Student Modal
-  if (showCreateStudent) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-navy-900 via-navy-800 to-navy-700 p-6">
-        <div className="max-w-2xl mx-auto bg-white rounded-2xl shadow-2xl p-8">
-          <div className="flex justify-between items-center mb-6">
-            <h2 className="text-2xl font-bold text-navy-800">➕ Create New Student</h2>
-            <button
-              onClick={() => setShowCreateStudent(false)}
-              className="text-gray-400 hover:text-gray-600"
-            >
-              ✕
-            </button>
-          </div>
-          
-          <form onSubmit={(e) => {
-            e.preventDefault();
-            const formData = new FormData(e.target);
-            const studentData = {
-              first_name: formData.get('first_name'),
-              last_name: formData.get('last_name'),
-              email: formData.get('email'),
-              password: formData.get('password'),
-              grade: formData.get('grade'),
-              school: formData.get('school'),
-              block_number: formData.get('block_number'),
-              teacher: formData.get('teacher')
-            };
-            handleCreateStudent(studentData);
-          }} className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
-              <input
-                type="text"
-                name="first_name"
-                placeholder="First Name"
-                className="p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gold-500 focus:border-transparent"
-                required
-              />
-              <input
-                type="text"
-                name="last_name"
-                placeholder="Last Name"
-                className="p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gold-500 focus:border-transparent"
-                required
-              />
-            </div>
-            <input
-              type="email"
-              name="email"
-              placeholder="Email"
-              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gold-500 focus:border-transparent"
-              required
-            />
-            <input
-              type="password"
-              name="password"
-              placeholder="Temporary Password"
-              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gold-500 focus:border-transparent"
-              required
-            />
-            <div className="grid grid-cols-2 gap-4">
-              <select
-                name="grade"
-                className="p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gold-500 focus:border-transparent"
-                required
-              >
-                <option value="">Select Grade</option>
-                <option value="6th">6th Grade</option>
-                <option value="7th">7th Grade</option>
-                <option value="8th">8th Grade</option>
-                <option value="9th">9th Grade</option>
-                <option value="10th">10th Grade</option>
-                <option value="11th">11th Grade</option>
-                <option value="12th">12th Grade</option>
-              </select>
-              <input
-                type="text"
-                name="block_number"
-                placeholder="Block Number"
-                className="p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gold-500 focus:border-transparent"
-                required
-              />
-            </div>
-            <input
-              type="text"
-              name="school"
-              placeholder="School Name"
-              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gold-500 focus:border-transparent"
-              required
-            />
-            <input
-              type="text"
-              name="teacher"
-              placeholder="Teacher Name"
-              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gold-500 focus:border-transparent"
-              required
-            />
-            
-            <div className="flex space-x-4 pt-4">
-              <button
-                type="submit"
-                className="flex-1 bg-gradient-to-r from-purple-500 to-purple-600 text-white py-3 rounded-lg font-semibold hover:from-purple-600 hover:to-purple-700 transition-all"
-              >
-                ➕ Create Student
-              </button>
-              <button
-                type="button"
-                onClick={() => setShowCreateStudent(false)}
-                className="flex-1 bg-gray-300 text-gray-700 py-3 rounded-lg font-semibold hover:bg-gray-400 transition-all"
-              >
-                Cancel
-              </button>
-            </div>
-          </form>
         </div>
       </div>
     );
@@ -2219,7 +1900,7 @@ function App() {
     );
   }
 
-  // Enhanced Admin View with Student Management
+  // Admin View
   if (currentView === 'admin' && user?.is_teacher) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-navy-900 via-navy-800 to-navy-700">
@@ -2232,22 +1913,19 @@ function App() {
               <span>←</span>
               <span>Back to Dashboard</span>
             </button>
-            <div className="flex items-center space-x-2">
-              <span className="text-2xl">👩‍💼</span>
-              <h1 className="text-2xl font-bold text-navy-800">Administrator Dashboard</h1>
-            </div>
+            <h1 className="text-2xl font-bold text-navy-800">👩‍💼 Administrator Dashboard</h1>
             <div className="flex space-x-2">
-              <button
-                onClick={() => setShowCreateStudent(true)}
-                className="px-4 py-2 bg-gradient-to-r from-purple-500 to-purple-600 text-white rounded-lg font-medium hover:from-purple-600 hover:to-purple-700 transition-all"
-              >
-                ➕ Add Student
-              </button>
               <button
                 onClick={() => setShowSlideCreator(true)}
                 className="px-4 py-2 bg-gradient-to-r from-gold-500 to-gold-600 text-navy-900 rounded-lg font-medium hover:from-gold-600 hover:to-gold-700 transition-all"
               >
                 ➕ Create Slide
+              </button>
+              <button
+                onClick={() => setShowStudySetCreator(true)}
+                className="px-4 py-2 bg-gradient-to-r from-navy-500 to-navy-600 text-white rounded-lg font-medium hover:from-navy-600 hover:to-navy-700 transition-all"
+              >
+                📚 Create Study Set
               </button>
               <button
                 onClick={() => { 
@@ -2263,216 +1941,187 @@ function App() {
         </header>
 
         <div className="max-w-6xl mx-auto p-6">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            {/* Student Profiles Section */}
-            <div className="bg-white rounded-2xl shadow-xl p-6">
-              <div className="flex items-center justify-between mb-6">
-                <div className="flex items-center space-x-2">
-                  <span className="text-xl">👥</span>
-                  <h3 className="text-xl font-semibold text-navy-700">Student Profiles</h3>
+          <div className="bg-white rounded-2xl shadow-xl p-8">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+              <div>
+                <h3 className="text-xl font-semibold text-navy-700 mb-6">👥 Student Profiles</h3>
+                <div className="space-y-4">
+                  {adminUsers.filter(u => !u.is_teacher).length > 0 ? (
+                    adminUsers.filter(u => !u.is_teacher).map((student, index) => (
+                      <div key={student.id} className="bg-white rounded-xl p-6 shadow-lg border-l-4 border-gold-500">
+                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                          {/* Basic Information */}
+                          <div>
+                            <div className="flex items-center space-x-3 mb-4">
+                              <div className="w-12 h-12 bg-gradient-to-br from-gold-400 to-gold-600 rounded-full flex items-center justify-center text-white font-bold text-lg">
+                                {student.first_name[0]}{student.last_name[0]}
+                              </div>
+                              <div>
+                                <h4 className="font-bold text-lg text-navy-800">
+                                  {student.first_name} {student.last_name}
+                                </h4>
+                                <p className="text-sm text-gray-600">{student.email}</p>
+                              </div>
+                            </div>
+                            
+                            <div className="space-y-2">
+                              <div className="flex justify-between">
+                                <span className="text-sm font-medium text-gray-600">Grade:</span>
+                                <span className="text-sm text-navy-700 font-semibold">{student.grade || 'Not specified'}</span>
+                              </div>
+                              <div className="flex justify-between">
+                                <span className="text-sm font-medium text-gray-600">School:</span>
+                                <span className="text-sm text-navy-700 font-semibold">{student.school || 'Not specified'}</span>
+                              </div>
+                              <div className="flex justify-between">
+                                <span className="text-sm font-medium text-gray-600">Block:</span>
+                                <span className="text-sm text-navy-700 font-semibold">{student.block_number || 'Not specified'}</span>
+                              </div>
+                              <div className="flex justify-between">
+                                <span className="text-sm font-medium text-gray-600">Teacher:</span>
+                                <span className="text-sm text-navy-700 font-semibold">{student.teacher || 'Not specified'}</span>
+                              </div>
+                            </div>
+                          </div>
+                          
+                          {/* Academic Progress */}
+                          <div>
+                            <h5 className="font-semibold text-navy-700 mb-3">📈 Academic Progress</h5>
+                            <div className="grid grid-cols-2 gap-3 mb-4">
+                              <div className="bg-blue-50 rounded-lg p-3 text-center">
+                                <div className="text-xl font-bold text-blue-600">{student.level || 1}</div>
+                                <div className="text-xs text-blue-600">Level</div>
+                              </div>
+                              <div className="bg-green-50 rounded-lg p-3 text-center">
+                                <div className="text-xl font-bold text-green-600">{student.total_points || 0}</div>
+                                <div className="text-xs text-green-600">Points</div>
+                              </div>
+                            </div>
+                            
+                            <div className="space-y-2">
+                              <div className="flex justify-between">
+                                <span className="text-sm font-medium text-gray-600">Streak:</span>
+                                <span className="text-sm text-navy-700 font-semibold">{student.streak_days || 0} days</span>
+                              </div>
+                              <div className="flex justify-between">
+                                <span className="text-sm font-medium text-gray-600">Joined:</span>
+                                <span className="text-sm text-navy-700 font-semibold">
+                                  {new Date(student.created_at).toLocaleDateString()}
+                                </span>
+                              </div>
+                            </div>
+                            
+                            {student.badges && student.badges.length > 0 && (
+                              <div className="mt-4">
+                                <h6 className="text-xs font-semibold text-gray-600 mb-2">BADGES EARNED:</h6>
+                                <div className="flex flex-wrap gap-1">
+                                  {student.badges.slice(0, 3).map((badge, idx) => (
+                                    <Badge key={idx} name={badge} earned={true} />
+                                  ))}
+                                  {student.badges.length > 3 && (
+                                    <span className="text-xs text-gray-500">+{student.badges.length - 3} more</span>
+                                  )}
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    ))
+                  ) : (
+                    <div className="text-center py-8 text-gray-500 bg-white rounded-xl">
+                      <p className="text-lg">No students registered yet.</p>
+                      <p className="text-sm mt-2">Students will appear here after they sign up with complete profile information.</p>
+                    </div>
+                  )}
                 </div>
-                <button
-                  onClick={() => setShowCreateStudent(true)}
-                  className="px-3 py-1 bg-purple-500 text-white text-sm rounded-lg hover:bg-purple-600 transition-colors"
-                >
-                  + Add Student
-                </button>
               </div>
               
-              <div className="space-y-4 max-h-96 overflow-y-auto">
-                {adminUsers.filter(u => !u.is_teacher).length > 0 ? (
-                  adminUsers.filter(u => !u.is_teacher).map((student, index) => (
-                    <div key={student.id} className="bg-gray-50 rounded-xl p-4 border-l-4 border-gold-500">
-                      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                        {/* Basic Information */}
-                        <div>
-                          <div className="flex items-center space-x-3 mb-3">
-                            <div className="w-8 h-8 bg-gradient-to-br from-gold-400 to-gold-600 rounded-full flex items-center justify-center text-white font-bold text-sm">
-                              {student.first_name?.[0]}{student.last_name?.[0]}
-                            </div>
-                            <div>
-                              <h4 className="font-bold text-navy-800">
-                                {student.first_name} {student.last_name}
-                              </h4>
-                              <p className="text-xs text-gray-600">{student.email}</p>
-                            </div>
-                          </div>
-                          
-                          <div className="space-y-1 text-sm">
-                            <div className="flex justify-between">
-                              <span className="text-gray-600">Grade:</span>
-                              <span className="text-navy-700 font-semibold">{student.grade || 'Not specified'}</span>
-                            </div>
-                            <div className="flex justify-between">
-                              <span className="text-gray-600">School:</span>
-                              <span className="text-navy-700 font-semibold">{student.school || 'Not specified'}</span>
-                            </div>
-                            <div className="flex justify-between">
-                              <span className="text-gray-600">Block:</span>
-                              <span className="text-navy-700 font-semibold">{student.block_number || 'Not specified'}</span>
-                            </div>
-                            <div className="flex justify-between">
-                              <span className="text-gray-600">Teacher:</span>
-                              <span className="text-navy-700 font-semibold">{student.teacher || 'Not specified'}</span>
-                            </div>
-                          </div>
-                        </div>
-                        
-                        {/* Academic Progress */}
-                        <div>
-                          <div className="flex items-center space-x-1 mb-2">
-                            <span className="text-sm">📈</span>
-                            <h5 className="font-semibold text-navy-700 text-sm">Academic Progress</h5>
-                          </div>
-                          <div className="grid grid-cols-2 gap-2 mb-3">
-                            <div className="bg-blue-50 rounded-lg p-2 text-center">
-                              <div className="text-lg font-bold text-blue-600">{student.level || 1}</div>
-                              <div className="text-xs text-blue-600">Level</div>
-                            </div>
-                            <div className="bg-green-50 rounded-lg p-2 text-center">
-                              <div className="text-lg font-bold text-green-600">{student.total_points || 0}</div>
-                              <div className="text-xs text-green-600">Points</div>
-                            </div>
-                          </div>
-                          
-                          <div className="space-y-1 text-sm">
-                            <div className="flex justify-between">
-                              <span className="text-gray-600">Streak:</span>
-                              <span className="text-navy-700 font-semibold">{student.streak_days || 0} days</span>
-                            </div>
-                            <div className="flex justify-between">
-                              <span className="text-gray-600">Joined:</span>
-                              <span className="text-navy-700 font-semibold">
-                                {new Date(student.created_at).toLocaleDateString()}
-                              </span>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                      
-                      {/* Action Buttons */}
-                      <div className="flex space-x-2 mt-4 pt-3 border-t border-gray-200">
-                        <button
-                          onClick={() => {
-                            setSelectedStudent(student);
-                            setShowStudentEditor(true);
-                          }}
-                          className="flex-1 px-3 py-1 bg-blue-500 text-white text-xs rounded hover:bg-blue-600 transition-colors"
-                        >
-                          ✏️ Edit Profile
-                        </button>
-                        <button
-                          onClick={() => loadStudentAnalytics(student.id)}
-                          className="flex-1 px-3 py-1 bg-green-500 text-white text-xs rounded hover:bg-green-600 transition-colors"
-                        >
-                          📊 View Analytics
-                        </button>
-                        <button
-                          onClick={() => handleDeleteStudent(student.id, `${student.first_name} ${student.last_name}`)}
-                          className="flex-1 px-3 py-1 bg-red-500 text-white text-xs rounded hover:bg-red-600 transition-colors"
-                        >
-                          🗑️ Delete
-                        </button>
-                      </div>
-                    </div>
-                  ))
-                ) : (
-                  <div className="text-center py-8 text-gray-500">
-                    <p className="text-lg">No students registered yet.</p>
-                    <p className="text-sm mt-2">Students will appear here after they sign up.</p>
+              <div>
+                <h3 className="text-xl font-semibold text-navy-700 mb-6">📈 Content Management</h3>
+                <div className="grid grid-cols-2 gap-4 mb-6">
+                  <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl p-6 text-center">
+                    <div className="text-3xl font-bold text-blue-600">{adminUsers.filter(u => !u.is_teacher).length}</div>
+                    <div className="text-sm text-blue-600 font-medium">Students</div>
                   </div>
-                )}
+                  <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-xl p-6 text-center">
+                    <div className="text-3xl font-bold text-green-600">{words.length}</div>
+                    <div className="text-sm text-green-600 font-medium">Word Cards</div>
+                  </div>
+                </div>
+                
+                <div className="space-y-3">
+                  <div className="flex justify-between items-center">
+                    <h4 className="font-semibold text-navy-700">All Slides ({words.length})</h4>
+                    <div className="text-sm text-gray-500">
+                      Edit or delete any slide below
+                    </div>
+                  </div>
+                  <div className="max-h-64 overflow-y-auto space-y-2 border rounded-lg p-3 bg-gray-50">
+                    {words.map((word, index) => (
+                      <div key={word.id} className="flex justify-between items-center p-3 bg-white rounded-lg border hover:shadow-sm transition-all">
+                        <div className="flex-1">
+                          <div className="flex items-center space-x-2">
+                            <span className={`px-2 py-1 rounded text-xs font-bold ${
+                              word.type === 'prefix' ? 'bg-blue-100 text-blue-800' :
+                              word.type === 'suffix' ? 'bg-green-100 text-green-800' :
+                              'bg-purple-100 text-purple-800'
+                            }`}>
+                              {word.type}
+                            </span>
+                            <span className="font-bold text-navy-800">{word.root}</span>
+                            <span className="text-sm text-gray-600">({word.origin})</span>
+                          </div>
+                          <div className="text-sm text-gray-600 mt-1">"{word.meaning}"</div>
+                          <div className="text-xs text-gray-500">{word.difficulty} • {word.points} pts</div>
+                        </div>
+                        <div className="flex space-x-2">
+                          <button
+                            onClick={() => {
+                              setEditingSlide(word);
+                              setShowSlideCreator(true);
+                            }}
+                            className="px-3 py-1 bg-blue-500 text-white text-xs rounded hover:bg-blue-600 transition-colors"
+                          >
+                            ✏️ Edit
+                          </button>
+                          <button
+                            onClick={() => handleDeleteSlide(word.id, word.root)}
+                            className="px-3 py-1 bg-red-500 text-white text-xs rounded hover:bg-red-600 transition-colors"
+                          >
+                            🗑️ Delete
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                    {words.length === 0 && (
+                      <div className="text-center py-8 text-gray-500">
+                        <p>No slides created yet.</p>
+                        <p className="text-sm mt-2">Click "Create Slide" to add your first slide.</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+                
+                <div className="mt-6 p-4 bg-navy-50 rounded-xl">
+                  <h4 className="font-semibold text-navy-700 mb-2">💡 Content Management Tips</h4>
+                  <ul className="text-sm text-navy-600 space-y-1">
+                    <li>• Create custom study sets for targeted learning</li>
+                    <li>• Use multiple-choice mode for guided practice</li>
+                    <li>• Upload visual aids to enhance comprehension</li>
+                    <li>• Edit slides anytime to update content or fix errors</li>
+                    <li>• Delete outdated or duplicate slides to keep content clean</li>
+                  </ul>
+                </div>
               </div>
             </div>
             
-            {/* Content Management Section */}
-            <div className="bg-white rounded-2xl shadow-xl p-6">
-              <div className="flex items-center space-x-2 mb-6">
-                <span className="text-xl">🔧</span>
-                <h3 className="text-xl font-semibold text-navy-700">Content Management</h3>
-              </div>
-              
-              <div className="grid grid-cols-2 gap-4 mb-6">
-                <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl p-6 text-center">
-                  <div className="text-3xl font-bold text-blue-600">{adminUsers.filter(u => !u.is_teacher).length}</div>
-                  <div className="text-sm text-blue-600 font-medium">Students</div>
-                </div>
-                <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-xl p-6 text-center">
-                  <div className="text-3xl font-bold text-green-600">{words.length}</div>
-                  <div className="text-sm text-green-600 font-medium">Word Cards</div>
-                </div>
-              </div>
-              
-              <div className="space-y-3">
-                <div className="flex justify-between items-center">
-                  <h4 className="font-semibold text-navy-700">All Slides ({words.length})</h4>
-                  <div className="text-sm text-gray-500">
-                    Edit or delete any slide below
-                  </div>
-                </div>
-                <div className="max-h-64 overflow-y-auto space-y-2 border rounded-lg p-3 bg-gray-50">
-                  {words.slice(0, 10).map((word, index) => (
-                    <div key={word.id} className="flex justify-between items-center p-3 bg-white rounded-lg border hover:shadow-sm transition-all">
-                      <div className="flex-1">
-                        <div className="flex items-center space-x-2">
-                          <span className={`px-2 py-1 rounded text-xs font-bold ${
-                            word.type === 'prefix' ? 'bg-blue-100 text-blue-800' :
-                            word.type === 'suffix' ? 'bg-green-100 text-green-800' :
-                            'bg-purple-100 text-purple-800'
-                          }`}>
-                            {word.type}
-                          </span>
-                          <span className="font-bold text-navy-800">{word.root}</span>
-                          <span className="text-sm text-gray-600">({word.origin})</span>
-                        </div>
-                        <div className="text-sm text-gray-600 mt-1">"{word.meaning}"</div>
-                        <div className="text-xs text-gray-500">{word.difficulty} • {word.points} pts</div>
-                      </div>
-                      <div className="flex space-x-2">
-                        <button
-                          onClick={() => {
-                            setEditingSlide(word);
-                            setShowSlideCreator(true);
-                          }}
-                          className="px-3 py-1 bg-blue-500 text-white text-xs rounded hover:bg-blue-600 transition-colors"
-                        >
-                          ✏️ Edit
-                        </button>
-                        <button
-                          onClick={() => handleDeleteSlide(word.id, word.root)}
-                          className="px-3 py-1 bg-red-500 text-white text-xs rounded hover:bg-red-600 transition-colors"
-                        >
-                          🗑️ Delete
-                        </button>
-                      </div>
-                    </div>
-                  ))}
-                  {words.length > 10 && (
-                    <div className="text-center py-2 text-gray-500 text-sm">
-                      ... and {words.length - 10} more slides
-                    </div>
-                  )}
-                  {words.length === 0 && (
-                    <div className="text-center py-8 text-gray-500">
-                      <p>No slides created yet.</p>
-                      <p className="text-sm mt-2">Click "Create Slide" to add your first slide.</p>
-                    </div>
-                  )}
-                </div>
-              </div>
-              
-              <div className="mt-6 p-4 bg-yellow-50 rounded-xl">
-                <div className="flex items-center space-x-2 mb-2">
-                  <span className="text-yellow-600">💡</span>
-                  <h4 className="font-semibold text-navy-700">Content Management Tips</h4>
-                </div>
-                <ul className="text-sm text-navy-600 space-y-1">
-                  <li>• Create custom study sets for targeted learning</li>
-                  <li>• Use multiple-choice mode for guided practice</li>
-                  <li>• Upload visual aids to enhance comprehension</li>
-                  <li>• Edit slides anytime to update content or fix errors</li>
-                  <li>• Delete outdated or duplicate slides to keep content clean</li>
-                </ul>
+            <div className="mt-8 p-6 bg-gradient-to-r from-gold-50 to-navy-50 rounded-xl">
+              <div className="text-center">
+                <JamaalCharacter 
+                  message="Teachers are the real language heroes! Thanks for empowering students to master Greek and Latin!" 
+                  size="medium"
+                />
               </div>
             </div>
           </div>
