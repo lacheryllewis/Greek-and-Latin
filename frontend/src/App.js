@@ -1600,13 +1600,23 @@ function App() {
     const [grade, setGrade] = useState('');
     const [maxUses, setMaxUses] = useState('50');
     const [expiresInDays, setExpiresInDays] = useState('30');
+    const [isLoading, setIsLoading] = useState(false);
 
+    // Load login codes only once on mount - don't let this interfere with form state
     useEffect(() => {
-      loadLoginCodes();
-    }, []);
+      const loadCodesOnce = async () => {
+        try {
+          await loadLoginCodes();
+        } catch (error) {
+          console.error('Error loading login codes:', error);
+        }
+      };
+      loadCodesOnce();
+    }, []); // Empty dependency array - only run once
 
     const handleFormSubmit = async (e) => {
       e.preventDefault();
+      setIsLoading(true);
       
       const formData = {
         class_name: className,
@@ -1622,7 +1632,7 @@ function App() {
       try {
         await createLoginCode(formData);
         
-        // Reset form
+        // Only reset form after successful submission
         setClassName('');
         setBlockNumber('');
         setSchool('');
@@ -1631,11 +1641,25 @@ function App() {
         setExpiresInDays('30');
         
         alert('Login code created successfully!');
+        
+        // Reload the login codes list
+        await loadLoginCodes();
       } catch (error) {
         console.error('Error:', error);
-        alert('Error creating login code: ' + (error.message || 'Unknown error'));
+        alert('Error creating login code: ' + (error.response?.data?.detail || error.message || 'Unknown error'));
+      } finally {
+        setIsLoading(false);
       }
     };
+
+    // Debug: Log when state changes
+    useEffect(() => {
+      console.log('State changed - Class Name:', className);
+    }, [className]);
+
+    useEffect(() => {
+      console.log('State changed - Block Number:', blockNumber);
+    }, [blockNumber]);
 
     return (
       <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '20px' }}>
@@ -1699,7 +1723,8 @@ function App() {
           }}>
             <strong>DEBUG STATUS:</strong><br/>
             Show Form: {showCreateForm ? 'TRUE - Form should be visible' : 'FALSE - Form is hidden'}<br/>
-            React State Working: {className ? `YES - Class name is "${className}"` : 'Waiting for input...'}
+            Form Data Persisting: {className || blockNumber || school ? 'YES - Data is being preserved' : 'Waiting for input...'}<br/>
+            Loading: {isLoading ? 'YES - Form submission in progress' : 'NO'}
           </div>
 
           {/* Create Form */}
@@ -1726,21 +1751,24 @@ function App() {
                     type="text"
                     value={className}
                     onChange={(e) => {
-                      console.log('Class name changing to:', e.target.value);
-                      setClassName(e.target.value);
+                      const newValue = e.target.value;
+                      console.log('Class name changing from:', className, 'to:', newValue);
+                      setClassName(newValue);
                     }}
-                    onFocus={() => console.log('Class name input focused')}
-                    onClick={() => console.log('Class name input clicked')}
+                    onFocus={() => console.log('Class name input focused, current value:', className)}
+                    onBlur={() => console.log('Class name input blurred, final value:', className)}
                     required
+                    disabled={isLoading}
                     style={{
                       width: '100%',
                       padding: '12px',
                       border: '2px solid #d1d5db',
                       borderRadius: '6px',
                       fontSize: '16px',
-                      backgroundColor: 'white',
+                      backgroundColor: isLoading ? '#f3f4f6' : 'white',
                       pointerEvents: 'auto',
-                      cursor: 'text'
+                      cursor: isLoading ? 'not-allowed' : 'text',
+                      opacity: isLoading ? 0.6 : 1
                     }}
                     placeholder="Enter class name (e.g., English 10)"
                   />
@@ -1755,18 +1783,21 @@ function App() {
                     type="text"
                     value={blockNumber}
                     onChange={(e) => {
-                      console.log('Block number changing to:', e.target.value);
-                      setBlockNumber(e.target.value);
+                      const newValue = e.target.value;
+                      console.log('Block number changing from:', blockNumber, 'to:', newValue);
+                      setBlockNumber(newValue);
                     }}
+                    disabled={isLoading}
                     style={{
                       width: '100%',
                       padding: '12px',
                       border: '2px solid #d1d5db',
                       borderRadius: '6px',
                       fontSize: '16px',
-                      backgroundColor: 'white',
+                      backgroundColor: isLoading ? '#f3f4f6' : 'white',
                       pointerEvents: 'auto',
-                      cursor: 'text'
+                      cursor: isLoading ? 'not-allowed' : 'text',
+                      opacity: isLoading ? 0.6 : 1
                     }}
                     placeholder="Enter block number (e.g., Block A)"
                   />
@@ -1781,18 +1812,21 @@ function App() {
                     type="text"
                     value={school}
                     onChange={(e) => {
-                      console.log('School changing to:', e.target.value);
-                      setSchool(e.target.value);
+                      const newValue = e.target.value;
+                      console.log('School changing from:', school, 'to:', newValue);
+                      setSchool(newValue);
                     }}
+                    disabled={isLoading}
                     style={{
                       width: '100%',
                       padding: '12px',
                       border: '2px solid #d1d5db',
                       borderRadius: '6px',
                       fontSize: '16px',
-                      backgroundColor: 'white',
+                      backgroundColor: isLoading ? '#f3f4f6' : 'white',
                       pointerEvents: 'auto',
-                      cursor: 'text'
+                      cursor: isLoading ? 'not-allowed' : 'text',
+                      opacity: isLoading ? 0.6 : 1
                     }}
                     placeholder="Enter school name"
                   />
@@ -1806,19 +1840,21 @@ function App() {
                   <select
                     value={grade}
                     onChange={(e) => {
-                      console.log('Grade changing to:', e.target.value);
-                      setGrade(e.target.value);
+                      const newValue = e.target.value;
+                      console.log('Grade changing from:', grade, 'to:', newValue);
+                      setGrade(newValue);
                     }}
-                    onClick={() => console.log('Grade dropdown clicked')}
+                    disabled={isLoading}
                     style={{
                       width: '100%',
                       padding: '12px',
                       border: '2px solid #d1d5db',
                       borderRadius: '6px',
                       fontSize: '16px',
-                      backgroundColor: 'white',
+                      backgroundColor: isLoading ? '#f3f4f6' : 'white',
                       pointerEvents: 'auto',
-                      cursor: 'pointer'
+                      cursor: isLoading ? 'not-allowed' : 'pointer',
+                      opacity: isLoading ? 0.6 : 1
                     }}
                   >
                     <option value="">Select Grade</option>
@@ -1843,18 +1879,21 @@ function App() {
                     max="1000"
                     value={maxUses}
                     onChange={(e) => {
-                      console.log('Max uses changing to:', e.target.value);
-                      setMaxUses(e.target.value);
+                      const newValue = e.target.value;
+                      console.log('Max uses changing from:', maxUses, 'to:', newValue);
+                      setMaxUses(newValue);
                     }}
+                    disabled={isLoading}
                     style={{
                       width: '100%',
                       padding: '12px',
                       border: '2px solid #d1d5db',
                       borderRadius: '6px',
                       fontSize: '16px',
-                      backgroundColor: 'white',
+                      backgroundColor: isLoading ? '#f3f4f6' : 'white',
                       pointerEvents: 'auto',
-                      cursor: 'text'
+                      cursor: isLoading ? 'not-allowed' : 'text',
+                      opacity: isLoading ? 0.6 : 1
                     }}
                   />
                 </div>
@@ -1870,18 +1909,21 @@ function App() {
                     max="365"
                     value={expiresInDays}
                     onChange={(e) => {
-                      console.log('Expires in days changing to:', e.target.value);
-                      setExpiresInDays(e.target.value);
+                      const newValue = e.target.value;
+                      console.log('Expires in days changing from:', expiresInDays, 'to:', newValue);
+                      setExpiresInDays(newValue);
                     }}
+                    disabled={isLoading}
                     style={{
                       width: '100%',
                       padding: '12px',
                       border: '2px solid #d1d5db',
                       borderRadius: '6px',
                       fontSize: '16px',
-                      backgroundColor: 'white',
+                      backgroundColor: isLoading ? '#f3f4f6' : 'white',
                       pointerEvents: 'auto',
-                      cursor: 'text'
+                      cursor: isLoading ? 'not-allowed' : 'text',
+                      opacity: isLoading ? 0.6 : 1
                     }}
                   />
                 </div>
@@ -1889,21 +1931,22 @@ function App() {
                 {/* Submit Button */}
                 <button
                   type="submit"
-                  onClick={() => console.log('Submit button clicked')}
+                  disabled={isLoading || !className.trim()}
                   style={{
                     width: '100%',
                     padding: '16px',
-                    backgroundColor: '#1d4ed8',
+                    backgroundColor: isLoading || !className.trim() ? '#9ca3af' : '#1d4ed8',
                     color: 'white',
                     border: 'none',
                     borderRadius: '8px',
                     fontSize: '18px',
                     fontWeight: '600',
-                    cursor: 'pointer',
-                    pointerEvents: 'auto'
+                    cursor: isLoading || !className.trim() ? 'not-allowed' : 'pointer',
+                    pointerEvents: 'auto',
+                    opacity: isLoading || !className.trim() ? 0.6 : 1
                   }}
                 >
-                  🔑 Generate Login Code
+                  {isLoading ? '⏳ Creating...' : '🔑 Generate Login Code'}
                 </button>
               </form>
               
@@ -1916,13 +1959,14 @@ function App() {
                 fontSize: '14px',
                 fontFamily: 'monospace'
               }}>
-                <strong>REAL-TIME FORM VALUES:</strong><br/>
-                Class Name: "{className}"<br/>
-                Block Number: "{blockNumber}"<br/>
-                School: "{school}"<br/>
-                Grade: "{grade}"<br/>
+                <strong>REAL-TIME FORM VALUES (Should NOT reset automatically):</strong><br/>
+                Class Name: "{className}" (Length: {className.length})<br/>
+                Block Number: "{blockNumber}" (Length: {blockNumber.length})<br/>
+                School: "{school}" (Length: {school.length})<br/>
+                Grade: "{grade}" (Length: {grade.length})<br/>
                 Max Uses: "{maxUses}"<br/>
-                Expires In Days: "{expiresInDays}"
+                Expires In Days: "{expiresInDays}"<br/>
+                <em>If these values are resetting automatically, there's a re-render issue.</em>
               </div>
             </div>
           )}
