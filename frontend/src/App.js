@@ -2464,6 +2464,15 @@ function App() {
               >
                 🔐 Backup Manager
               </button>
+              <button
+                onClick={() => { 
+                  setShowLoginCodeManager(true); 
+                  loadLoginCodes(); 
+                }}
+                className="px-4 py-2 bg-gradient-to-r from-purple-500 to-purple-600 text-white rounded-lg font-medium hover:from-purple-600 hover:to-purple-700 transition-all"
+              >
+                🎫 Login Codes
+              </button>
             </div>
           </div>
         </header>
