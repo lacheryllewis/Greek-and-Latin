@@ -1171,7 +1171,7 @@ def test_student_management():
     }
     
     print("\n🔍 Creating new student...")
-    success, response = tester.run_test(
+    success, create_response = tester.run_test(
         "Create Student", 
         "POST", 
         "admin/create-student", 
@@ -1184,10 +1184,10 @@ def test_student_management():
         print("❌ Student creation failed")
         return False
     
-    print(f"✅ Student creation successful: {response}")
+    print(f"✅ Student creation successful: {create_response}")
     
     # Get the student ID
-    student_id = response.get('student_id')
+    student_id = create_response.get('student_id')
     if not student_id:
         print("❌ No student ID returned")
         return False
