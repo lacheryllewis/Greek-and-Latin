@@ -1145,6 +1145,234 @@ def test_backup_system():
     print(f"✅ Backup system testing completed successfully")
     return True
 
+def test_student_management():
+    """Test the student management features"""
+    print("\n🔍 Testing Student Management Features...")
+    
+    # First, login as admin
+    success, admin_token = test_admin_login_specific()
+    if not success:
+        print("❌ Admin login failed, stopping student management test")
+        return False
+    
+    tester = GreekLatinAPITester()
+    
+    # 1. Create a new student
+    student_data = {
+        "email": f"student_{uuid.uuid4().hex[:8]}@test.com",
+        "password": "Student123!",
+        "first_name": "Test",
+        "last_name": "Student",
+        "is_teacher": False,
+        "grade": "8th Grade",
+        "school": "Lincoln Middle School",
+        "block_number": "B4",
+        "teacher": "Mr. Anderson"
+    }
+    
+    print("\n🔍 Creating new student...")
+    success, response = tester.run_test(
+        "Create Student", 
+        "POST", 
+        "admin/create-student", 
+        200, 
+        data=student_data, 
+        token=admin_token
+    )
+    
+    if not success:
+        print("❌ Student creation failed")
+        return False
+    
+    print(f"✅ Student creation successful: {response}")
+    
+    # Get the student ID
+    student_id = response.get('student_id')
+    if not student_id:
+        print("❌ No student ID returned")
+        return False
+    
+    print(f"✅ Student created with ID: {student_id}")
+    
+    # 2. Get student details with analytics
+    print("\n🔍 Getting student details with analytics...")
+    success, student_details = tester.run_test(
+        "Get Student Details", 
+        "GET", 
+        f"admin/student/{student_id}", 
+        200, 
+        token=admin_token
+    )
+    
+    if not success:
+        print("❌ Failed to get student details")
+        return False
+    
+    # Verify student profile data
+    student_profile = student_details.get('student', {})
+    if not student_profile:
+        print("❌ No student profile in response")
+        return False
+    
+    # Check if student profile contains expected fields
+    expected_fields = ['id', 'email', 'first_name', 'last_name', 'grade', 'school', 'block_number', 'teacher']
+    for field in expected_fields:
+        if field not in student_profile:
+            print(f"❌ Student profile missing field: {field}")
+            return False
+    
+    # Verify student analytics data
+    analytics = student_details.get('analytics', {})
+    if not analytics:
+        print("❌ No analytics data in response")
+        return False
+    
+    # Check if analytics contains expected fields
+    analytics_fields = ['total_study_sessions', 'accuracy_rate', 'total_quizzes', 'average_quiz_score', 'recent_activity_count']
+    for field in analytics_fields:
+        if field not in analytics:
+            print(f"❌ Analytics missing field: {field}")
+            return False
+    
+    print(f"✅ Student details retrieved successfully with analytics")
+    
+    # 3. Update student profile
+    updated_data = {
+        "first_name": "Updated",
+        "last_name": "Student",
+        "grade": "9th Grade",
+        "school": "Washington High School",
+        "block_number": "C5",
+        "teacher": "Ms. Thompson"
+    }
+    
+    print("\n🔍 Updating student profile...")
+    success, update_response = tester.run_test(
+        "Update Student", 
+        "PUT", 
+        f"admin/student/{student_id}", 
+        200, 
+        data=updated_data, 
+        token=admin_token
+    )
+    
+    if not success:
+        print("❌ Student update failed")
+        return False
+    
+    print(f"✅ Student update successful: {update_response}")
+    
+    # 4. Verify the update was applied
+    print("\n🔍 Verifying student update was applied...")
+    success, updated_details = tester.run_test(
+        "Get Updated Student Details", 
+        "GET", 
+        f"admin/student/{student_id}", 
+        200, 
+        token=admin_token
+    )
+    
+    if not success:
+        print("❌ Failed to get updated student details")
+        return False
+    
+    # Verify updated fields
+    updated_profile = updated_details.get('student', {})
+    if not updated_profile:
+        print("❌ No updated student profile in response")
+        return False
+    
+    # Check if fields were updated correctly
+    for field, value in updated_data.items():
+        if updated_profile.get(field) != value:
+            print(f"❌ Field '{field}' not updated correctly. Expected: '{value}', Got: '{updated_profile.get(field)}'")
+            return False
+    
+    print(f"✅ Student profile update verification successful")
+    
+    # 5. Test authorization - try to access with student token
+    # First register a student account
+    if not tester.register_student():
+        print("❌ Test student registration failed")
+        return False
+    
+    print("\n🔍 Testing authorization - student should not access admin endpoints...")
+    success, _ = tester.run_test(
+        "Student Access Admin Endpoint", 
+        "GET", 
+        f"admin/student/{student_id}", 
+        403,  # Expect forbidden
+        token=tester.student_token
+    )
+    
+    if not success:
+        print("❌ Authorization test failed - student could access admin endpoint")
+        return False
+    
+    print(f"✅ Authorization test passed - student cannot access admin endpoints")
+    
+    # 6. Delete student
+    print("\n🔍 Deleting student...")
+    success, delete_response = tester.run_test(
+        "Delete Student", 
+        "DELETE", 
+        f"admin/student/{student_id}", 
+        200, 
+        token=admin_token
+    )
+    
+    if not success:
+        print("❌ Student deletion failed")
+        return False
+    
+    print(f"✅ Student deletion successful: {delete_response}")
+    
+    # 7. Verify student was deleted
+    print("\n🔍 Verifying student was deleted...")
+    success, _ = tester.run_test(
+        "Get Deleted Student", 
+        "GET", 
+        f"admin/student/{student_id}", 
+        404,  # Expect not found
+        token=admin_token
+    )
+    
+    if not success:
+        print("❌ Student deletion verification failed - student still exists")
+        return False
+    
+    print(f"✅ Student deletion verification successful")
+    
+    # 8. Test email uniqueness validation
+    print("\n🔍 Testing email uniqueness validation...")
+    
+    # Try to create a student with the same email as our test student
+    duplicate_data = {
+        "email": tester.student_email,  # Use the email from our test student
+        "password": "Student123!",
+        "first_name": "Duplicate",
+        "last_name": "Student",
+        "is_teacher": False
+    }
+    
+    success, _ = tester.run_test(
+        "Create Duplicate Student", 
+        "POST", 
+        "admin/create-student", 
+        400,  # Expect bad request
+        data=duplicate_data, 
+        token=admin_token
+    )
+    
+    if not success:
+        print("❌ Email uniqueness validation failed - allowed duplicate email")
+        return False
+    
+    print(f"✅ Email uniqueness validation successful")
+    
+    print(f"✅ Student management testing completed successfully")
+    return True
+
 def main():
     # Run specific admin login test
     admin_test_success, _ = test_admin_login_specific()
@@ -1158,11 +1386,16 @@ def main():
     # Run slide creation and access test
     slide_test_success = test_slide_creation_and_access()
     
+    # Run student management test
+    student_management_success = test_student_management()
+    
     # Run all other tests
     tester = GreekLatinAPITester()
     all_tests_success = tester.run_all_tests()
     
-    return 0 if (admin_test_success and backup_system_success and slide_management_success and slide_test_success and all_tests_success) else 1
+    return 0 if (admin_test_success and backup_system_success and 
+                slide_management_success and slide_test_success and 
+                student_management_success and all_tests_success) else 1
 
 if __name__ == "__main__":
     main()
