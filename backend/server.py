@@ -520,6 +520,35 @@ class UserProgress(BaseModel):
     studying_words: List[str] = []
     difficult_words: List[str] = []
 
+class LoginCode(BaseModel):
+    id: str
+    code: str
+    teacher_id: str
+    class_name: str
+    block_number: Optional[str] = None
+    school: Optional[str] = None
+    grade: Optional[str] = None
+    max_uses: int = 50
+    current_uses: int = 0
+    expires_at: datetime
+    active: bool = True
+    created_at: datetime
+
+class LoginCodeCreate(BaseModel):
+    class_name: str
+    block_number: Optional[str] = None
+    school: Optional[str] = None
+    grade: Optional[str] = None
+    max_uses: int = 50
+    expires_in_days: int = 30
+
+class StudentRegisterWithCode(BaseModel):
+    email: EmailStr
+    password: str
+    first_name: str
+    last_name: str
+    login_code: Optional[str] = None
+
 # Helper functions
 def hash_password(password: str) -> str:
     return pwd_context.hash(password)
