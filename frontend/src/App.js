@@ -1649,83 +1649,85 @@ function App() {
           {showCreateForm && (
             <div className="bg-gray-50 rounded-xl p-6 mb-8">
               <h3 className="text-xl font-semibold text-navy-800 mb-4">Create New Login Code</h3>
-              <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Class Name *</label>
-                  <input
-                    type="text"
-                    required
-                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gold-500 focus:border-transparent"
-                    value={newCodeData.class_name}
-                    onChange={(e) => setNewCodeData({...newCodeData, class_name: e.target.value})}
-                    placeholder="e.g., English 10, Greek & Latin Academy"
-                  />
+              <form onSubmit={handleSubmit} className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Class Name *</label>
+                    <input
+                      type="text"
+                      required
+                      className="w-full p-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      value={newCodeData.class_name}
+                      onChange={(e) => setNewCodeData({...newCodeData, class_name: e.target.value})}
+                      placeholder="e.g., English 10, Greek & Latin Academy"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Block Number</label>
+                    <input
+                      type="text"
+                      className="w-full p-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      value={newCodeData.block_number}
+                      onChange={(e) => setNewCodeData({...newCodeData, block_number: e.target.value})}
+                      placeholder="e.g., Block A, Period 3"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">School</label>
+                    <input
+                      type="text"
+                      className="w-full p-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      value={newCodeData.school}
+                      onChange={(e) => setNewCodeData({...newCodeData, school: e.target.value})}
+                      placeholder="e.g., Lincoln High School"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Grade Level</label>
+                    <select
+                      className="w-full p-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      value={newCodeData.grade}
+                      onChange={(e) => setNewCodeData({...newCodeData, grade: e.target.value})}
+                    >
+                      <option value="">Select Grade</option>
+                      <option value="6th">6th Grade</option>
+                      <option value="7th">7th Grade</option>
+                      <option value="8th">8th Grade</option>
+                      <option value="9th">9th Grade</option>
+                      <option value="10th">10th Grade</option>
+                      <option value="11th">11th Grade</option>
+                      <option value="12th">12th Grade</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Max Uses</label>
+                    <input
+                      type="number"
+                      min="1"
+                      max="1000"
+                      className="w-full p-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      value={newCodeData.max_uses}
+                      onChange={(e) => setNewCodeData({...newCodeData, max_uses: parseInt(e.target.value) || 50})}
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Expires In (Days)</label>
+                    <input
+                      type="number"
+                      min="1"
+                      max="365"
+                      className="w-full p-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      value={newCodeData.expires_in_days}
+                      onChange={(e) => setNewCodeData({...newCodeData, expires_in_days: parseInt(e.target.value) || 30})}
+                    />
+                  </div>
                 </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Block Number</label>
-                  <input
-                    type="text"
-                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gold-500 focus:border-transparent"
-                    value={newCodeData.block_number}
-                    onChange={(e) => setNewCodeData({...newCodeData, block_number: e.target.value})}
-                    placeholder="e.g., Block A, Period 3"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">School</label>
-                  <input
-                    type="text"
-                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gold-500 focus:border-transparent"
-                    value={newCodeData.school}
-                    onChange={(e) => setNewCodeData({...newCodeData, school: e.target.value})}
-                    placeholder="e.g., Lincoln High School"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Grade Level</label>
-                  <select
-                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gold-500 focus:border-transparent"
-                    value={newCodeData.grade}
-                    onChange={(e) => setNewCodeData({...newCodeData, grade: e.target.value})}
-                  >
-                    <option value="">Select Grade</option>
-                    <option value="6th">6th Grade</option>
-                    <option value="7th">7th Grade</option>
-                    <option value="8th">8th Grade</option>
-                    <option value="9th">9th Grade</option>
-                    <option value="10th">10th Grade</option>
-                    <option value="11th">11th Grade</option>
-                    <option value="12th">12th Grade</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Max Uses</label>
-                  <input
-                    type="number"
-                    min="1"
-                    max="1000"
-                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gold-500 focus:border-transparent"
-                    value={newCodeData.max_uses}
-                    onChange={(e) => setNewCodeData({...newCodeData, max_uses: parseInt(e.target.value)})}
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Expires In (Days)</label>
-                  <input
-                    type="number"
-                    min="1"
-                    max="365"
-                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gold-500 focus:border-transparent"
-                    value={newCodeData.expires_in_days}
-                    onChange={(e) => setNewCodeData({...newCodeData, expires_in_days: parseInt(e.target.value)})}
-                  />
-                </div>
-                <div className="md:col-span-2">
+                <div className="pt-4">
                   <button
                     type="submit"
-                    className="px-8 py-3 bg-gradient-to-r from-navy-600 to-navy-700 text-white rounded-lg font-semibold hover:from-navy-700 hover:to-navy-800 transition-all"
+                    className="w-full px-8 py-4 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition-all text-lg"
                   >
-                    Generate Login Code
+                    🔑 Generate Login Code
                   </button>
                 </div>
               </form>
