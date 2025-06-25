@@ -1609,7 +1609,16 @@ function App() {
 
     const handleSubmit = async (e) => {
       e.preventDefault();
-      await createLoginCode(newCodeData);
+      
+      // Prepare data for submission, ensuring numbers are properly formatted
+      const submitData = {
+        ...newCodeData,
+        max_uses: Number(newCodeData.max_uses) || 50,
+        expires_in_days: Number(newCodeData.expires_in_days) || 30
+      };
+      
+      await createLoginCode(submitData);
+      
       // Reset form but keep it visible
       setNewCodeData({
         class_name: '',
