@@ -698,14 +698,29 @@ function App() {
   const handleRegister = async (e) => {
     e.preventDefault();
     try {
-      const response = await axios.post(`${API_BASE_URL}/api/register`, registerData);
-      const { access_token, user } = response.data;
+      // Use the new registration endpoint that supports login codes
+      const registrationData = {
+        ...registerData,
+        login_code: loginCodeToValidate || null
+      };
+      
+      const response = await axios.post(`${API_BASE_URL}/api/register-with-code`, registrationData);
+      const { access_token, user, class_info, used_login_code } = response.data;
       
       localStorage.setItem('token', access_token);
       axios.defaults.headers.common['Authorization'] = `Bearer ${access_token}`;
       setUser(user);
       
       await loadUserData();
+      
+      // Show success message with class info if available
+      if (class_info && used_login_code) {
+        alert(`🎉 Welcome to ${class_info.class_name}!\n\nTeacher: ${class_info.teacher_name}\nLogin Code: ${used_login_code}\n\nYou're now registered and ready to start learning!`);
+      } else {
+        alert('🎉 Registration successful! Welcome to Greek and Latin Academy!');
+      }
+      
+      setCurrentView('dashboard');
     } catch (error) {
       alert('Registration failed: ' + (error.response?.data?.detail || 'Unknown error'));
     }
