@@ -606,6 +606,10 @@ function App() {
   const [quizScore, setQuizScore] = useState(0);
   const [quizQuestion, setQuizQuestion] = useState(0);
   const [adminUsers, setAdminUsers] = useState([]);
+  const [selectedStudent, setSelectedStudent] = useState(null);
+  const [showStudentEditor, setShowStudentEditor] = useState(false);
+  const [showCreateStudent, setShowCreateStudent] = useState(false);
+  const [studentAnalytics, setStudentAnalytics] = useState({});
   const [userProfile, setUserProfile] = useState(null);
   const [leaderboard, setLeaderboard] = useState([]);
   const [showSlideCreator, setShowSlideCreator] = useState(false);
