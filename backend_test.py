@@ -504,7 +504,7 @@ def test_slide_management():
     }
     
     print("\n🔍 Creating test slide...")
-    success, response = tester.run_test(
+    success, create_response = tester.run_test(
         "Create Test Slide", 
         "POST", 
         "admin/create-word", 
@@ -517,10 +517,10 @@ def test_slide_management():
         print("❌ Test slide creation failed")
         return False
     
-    print(f"✅ Test slide creation successful: {response}")
+    print(f"✅ Test slide creation successful: {create_response}")
     
     # Get the slide ID
-    slide_id = response.get('id')
+    slide_id = create_response.get('id')
     if not slide_id:
         print("❌ No slide ID returned")
         return False
