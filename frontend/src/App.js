@@ -1391,6 +1391,52 @@ function App() {
                 required
               />
               
+              {/* Login Code Section */}
+              <div className="border-t pt-4">
+                <h4 className="text-sm font-semibold text-gray-700 mb-3">Class Login Code (Optional)</h4>
+                <div className="space-y-3">
+                  <input
+                    type="text"
+                    placeholder="Enter your class login code (e.g., ABC12345)"
+                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gold-500 focus:border-transparent"
+                    value={loginCodeToValidate}
+                    onChange={(e) => setLoginCodeToValidate(e.target.value.toUpperCase())}
+                  />
+                  {loginCodeToValidate && (
+                    <button
+                      type="button"
+                      onClick={async () => {
+                        try {
+                          await validateLoginCode(loginCodeToValidate);
+                        } catch (error) {
+                          alert('Invalid login code: ' + (error.response?.data?.detail || 'Code not found'));
+                        }
+                      }}
+                      className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-all text-sm"
+                    >
+                      Validate Code
+                    </button>
+                  )}
+                  {validatedCodeInfo && (
+                    <div className="p-3 bg-green-50 rounded-lg border border-green-200">
+                      <p className="text-sm text-green-800">
+                        <span className="font-medium">✅ Valid Code!</span> This will add you to:
+                      </p>
+                      <div className="text-sm text-green-700 mt-1">
+                        <p><strong>Class:</strong> {validatedCodeInfo.class_name}</p>
+                        <p><strong>Teacher:</strong> {validatedCodeInfo.teacher_name}</p>
+                        {validatedCodeInfo.school && <p><strong>School:</strong> {validatedCodeInfo.school}</p>}
+                        {validatedCodeInfo.grade && <p><strong>Grade:</strong> {validatedCodeInfo.grade}</p>}
+                        <p className="text-xs mt-1">Uses remaining: {validatedCodeInfo.uses_remaining}</p>
+                      </div>
+                    </div>
+                  )}
+                  <p className="text-xs text-gray-500">
+                    Have a login code from your teacher? Enter it above to automatically join their class!
+                  </p>
+                </div>
+              </div>
+              
               {/* Student Profile Information */}
               <div className="border-t pt-4">
                 <h4 className="text-sm font-semibold text-gray-700 mb-3">Student Information</h4>
