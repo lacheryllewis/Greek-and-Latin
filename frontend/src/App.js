@@ -2231,12 +2231,23 @@ function App() {
                 <div className="space-y-3">
                   <div className="flex justify-between items-center">
                     <h4 className="font-semibold text-navy-700">All Slides ({words.length})</h4>
-                    <div className="text-sm text-gray-500">
-                      Edit or delete any slide below
+                    <div className="flex items-center space-x-2">
+                      <button
+                        onClick={() => setSortOrder(sortOrder === 'alphabetical' ? 'type' : 'alphabetical')}
+                        className="px-3 py-1 bg-blue-500 text-white text-xs rounded hover:bg-blue-600 transition-colors"
+                      >
+                        Sort: {sortOrder === 'alphabetical' ? 'A-Z' : 'Type'}
+                      </button>
+                      <button
+                        onClick={() => setShowPrintableView(true)}
+                        className="px-3 py-1 bg-green-500 text-white text-xs rounded hover:bg-green-600 transition-colors"
+                      >
+                        🖨️ Print List
+                      </button>
                     </div>
                   </div>
                   <div className="max-h-64 overflow-y-auto space-y-2 border rounded-lg p-3 bg-gray-50">
-                    {words.map((word, index) => (
+                    {getSortedWords().map((word, index) => (
                       <div key={word.id} className="flex justify-between items-center p-3 bg-white rounded-lg border hover:shadow-sm transition-all">
                         <div className="flex-1">
                           <div className="flex items-center space-x-2">
