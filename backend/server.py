@@ -595,6 +595,10 @@ def get_badges(points: int, level: int, streak: int) -> List[str]:
         badges.append("Monthly Master")
     return badges
 
+def generate_login_code() -> str:
+    """Generate a unique login code"""
+    return ''.join(random.choices(string.ascii_uppercase + string.digits, k=8))
+
 async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(security)):
     try:
         token = credentials.credentials
