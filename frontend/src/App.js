@@ -618,6 +618,10 @@ function App() {
   const [studentAnalytics, setStudentAnalytics] = useState(null);
   const [backups, setBackups] = useState([]);
   const [editingSlide, setEditingSlide] = useState(null);
+  const [showLoginCodeManager, setShowLoginCodeManager] = useState(false);
+  const [loginCodes, setLoginCodes] = useState([]);
+  const [loginCodeToValidate, setLoginCodeToValidate] = useState('');
+  const [validatedCodeInfo, setValidatedCodeInfo] = useState(null);
   const [showPrintableView, setShowPrintableView] = useState(false);
   const [sortOrder, setSortOrder] = useState('alphabetical'); // 'alphabetical' or 'type'
 
