@@ -1130,7 +1130,7 @@ def test_backup_system():
     
     # Clean up - delete the test word
     print("\n🔍 Cleaning up - deleting test word...")
-    success, _ = tester.run_test(
+    success, delete_response = tester.run_test(
         "Delete Test Word", 
         "DELETE", 
         f"admin/delete-word/{word_id}", 
