@@ -618,6 +618,8 @@ function App() {
   const [studentAnalytics, setStudentAnalytics] = useState(null);
   const [backups, setBackups] = useState([]);
   const [editingSlide, setEditingSlide] = useState(null);
+  const [showPrintableView, setShowPrintableView] = useState(false);
+  const [sortOrder, setSortOrder] = useState('alphabetical'); // 'alphabetical' or 'type'
 
   // Auth forms state
   const [loginData, setLoginData] = useState({ email: '', password: '' });
