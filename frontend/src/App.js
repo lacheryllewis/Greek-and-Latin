@@ -617,9 +617,7 @@ function App() {
   const [showBackupManager, setShowBackupManager] = useState(false);
   const [showStudentManager, setShowStudentManager] = useState(false);
   const [showStudentProfile, setShowStudentProfile] = useState(false);
-  const [selectedStudent, setSelectedStudent] = useState(null);
   const [editingStudent, setEditingStudent] = useState(null);
-  const [studentAnalytics, setStudentAnalytics] = useState(null);
   const [backups, setBackups] = useState([]);
   const [editingSlide, setEditingSlide] = useState(null);
 
