@@ -1524,6 +1524,253 @@ function App() {
     );
   }
 
+  // Login Code Manager Component
+  const LoginCodeManager = () => {
+    const [showCreateForm, setShowCreateForm] = useState(false);
+    const [newCodeData, setNewCodeData] = useState({
+      class_name: '',
+      block_number: '',
+      school: '',
+      grade: '',
+      max_uses: 50,
+      expires_in_days: 30
+    });
+
+    useEffect(() => {
+      loadLoginCodes();
+    }, []);
+
+    const handleSubmit = async (e) => {
+      e.preventDefault();
+      await createLoginCode(newCodeData);
+      setShowCreateForm(false);
+      setNewCodeData({
+        class_name: '',
+        block_number: '',
+        school: '',
+        grade: '',
+        max_uses: 50,
+        expires_in_days: 30
+      });
+    };
+
+    return (
+      <div className="max-w-6xl mx-auto">
+        <div className="bg-white rounded-2xl shadow-xl p-8">
+          <div className="flex justify-between items-center mb-8">
+            <div>
+              <h2 className="text-3xl font-bold text-navy-800">Login Code Management</h2>
+              <p className="text-gray-600 mt-2">Create and manage login codes for your classes</p>
+            </div>
+            <div className="flex space-x-3">
+              <button
+                onClick={() => setShowCreateForm(!showCreateForm)}
+                className="px-6 py-3 bg-gradient-to-r from-gold-500 to-gold-600 text-navy-900 rounded-lg font-semibold hover:from-gold-600 hover:to-gold-700 transition-all"
+              >
+                {showCreateForm ? '✕ Cancel' : '+ Create New Code'}
+              </button>
+              <button
+                onClick={() => setShowLoginCodeManager(false)}
+                className="px-6 py-3 bg-gray-500 text-white rounded-lg font-semibold hover:bg-gray-600 transition-all"
+              >
+                ← Back to Admin
+              </button>
+            </div>
+          </div>
+
+          {/* Create Form */}
+          {showCreateForm && (
+            <div className="bg-gray-50 rounded-xl p-6 mb-8">
+              <h3 className="text-xl font-semibold text-navy-800 mb-4">Create New Login Code</h3>
+              <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Class Name *</label>
+                  <input
+                    type="text"
+                    required
+                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gold-500 focus:border-transparent"
+                    value={newCodeData.class_name}
+                    onChange={(e) => setNewCodeData({...newCodeData, class_name: e.target.value})}
+                    placeholder="e.g., English 10, Greek & Latin Academy"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Block Number</label>
+                  <input
+                    type="text"
+                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gold-500 focus:border-transparent"
+                    value={newCodeData.block_number}
+                    onChange={(e) => setNewCodeData({...newCodeData, block_number: e.target.value})}
+                    placeholder="e.g., Block A, Period 3"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">School</label>
+                  <input
+                    type="text"
+                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gold-500 focus:border-transparent"
+                    value={newCodeData.school}
+                    onChange={(e) => setNewCodeData({...newCodeData, school: e.target.value})}
+                    placeholder="e.g., Lincoln High School"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Grade Level</label>
+                  <select
+                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gold-500 focus:border-transparent"
+                    value={newCodeData.grade}
+                    onChange={(e) => setNewCodeData({...newCodeData, grade: e.target.value})}
+                  >
+                    <option value="">Select Grade</option>
+                    <option value="6th">6th Grade</option>
+                    <option value="7th">7th Grade</option>
+                    <option value="8th">8th Grade</option>
+                    <option value="9th">9th Grade</option>
+                    <option value="10th">10th Grade</option>
+                    <option value="11th">11th Grade</option>
+                    <option value="12th">12th Grade</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Max Uses</label>
+                  <input
+                    type="number"
+                    min="1"
+                    max="1000"
+                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gold-500 focus:border-transparent"
+                    value={newCodeData.max_uses}
+                    onChange={(e) => setNewCodeData({...newCodeData, max_uses: parseInt(e.target.value)})}
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Expires In (Days)</label>
+                  <input
+                    type="number"
+                    min="1"
+                    max="365"
+                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gold-500 focus:border-transparent"
+                    value={newCodeData.expires_in_days}
+                    onChange={(e) => setNewCodeData({...newCodeData, expires_in_days: parseInt(e.target.value)})}
+                  />
+                </div>
+                <div className="md:col-span-2">
+                  <button
+                    type="submit"
+                    className="px-8 py-3 bg-gradient-to-r from-navy-600 to-navy-700 text-white rounded-lg font-semibold hover:from-navy-700 hover:to-navy-800 transition-all"
+                  >
+                    Generate Login Code
+                  </button>
+                </div>
+              </form>
+            </div>
+          )}
+
+          {/* Login Codes List */}
+          <div className="space-y-4">
+            <h3 className="text-xl font-semibold text-navy-800">Your Login Codes ({loginCodes.length})</h3>
+            
+            {loginCodes.length === 0 ? (
+              <div className="text-center py-12 text-gray-500">
+                <div className="text-6xl mb-4">📝</div>
+                <p className="text-lg">No login codes created yet</p>
+                <p className="text-sm">Create your first login code to get started!</p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                {loginCodes.map((code) => {
+                  const isExpired = code.is_expired;
+                  const isAtLimit = code.current_uses >= code.max_uses;
+                  const isInactive = !code.active || isExpired || isAtLimit;
+                  
+                  return (
+                    <div
+                      key={code.id}
+                      className={`p-6 rounded-xl border-2 transition-all ${
+                        isInactive 
+                          ? 'border-gray-200 bg-gray-50' 
+                          : 'border-green-200 bg-green-50'
+                      }`}
+                    >
+                      <div className="flex justify-between items-start mb-4">
+                        <div>
+                          <div className="flex items-center space-x-2 mb-2">
+                            <span className={`text-2xl font-bold ${isInactive ? 'text-gray-500' : 'text-green-700'}`}>
+                              {code.code}
+                            </span>
+                            <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                              isInactive ? 'bg-gray-200 text-gray-600' : 'bg-green-200 text-green-800'
+                            }`}>
+                              {isExpired ? 'EXPIRED' : isAtLimit ? 'FULL' : !code.active ? 'INACTIVE' : 'ACTIVE'}
+                            </span>
+                          </div>
+                          <h4 className="text-lg font-semibold text-navy-800">{code.class_name}</h4>
+                          {code.block_number && (
+                            <p className="text-sm text-gray-600">{code.block_number}</p>
+                          )}
+                        </div>
+                        <div className="flex space-x-2">
+                          {!isExpired && !isAtLimit && (
+                            <button
+                              onClick={() => toggleLoginCode(code.id)}
+                              className={`px-3 py-1 rounded text-xs font-medium transition-all ${
+                                code.active 
+                                  ? 'bg-orange-100 text-orange-700 hover:bg-orange-200' 
+                                  : 'bg-green-100 text-green-700 hover:bg-green-200'
+                              }`}
+                            >
+                              {code.active ? 'Deactivate' : 'Activate'}
+                            </button>
+                          )}
+                          <button
+                            onClick={() => deleteLoginCode(code.id, code.code)}
+                            className="px-3 py-1 bg-red-100 text-red-700 rounded text-xs font-medium hover:bg-red-200 transition-all"
+                          >
+                            Delete
+                          </button>
+                        </div>
+                      </div>
+                      
+                      <div className="grid grid-cols-2 gap-4 text-sm">
+                        <div>
+                          <span className="text-gray-500">Usage:</span>
+                          <span className="ml-2 font-medium">{code.current_uses}/{code.max_uses}</span>
+                        </div>
+                        <div>
+                          <span className="text-gray-500">Expires:</span>
+                          <span className="ml-2 font-medium">
+                            {new Date(code.expires_at).toLocaleDateString()}
+                          </span>
+                        </div>
+                        {code.school && (
+                          <div>
+                            <span className="text-gray-500">School:</span>
+                            <span className="ml-2 font-medium">{code.school}</span>
+                          </div>
+                        )}
+                        {code.grade && (
+                          <div>
+                            <span className="text-gray-500">Grade:</span>
+                            <span className="ml-2 font-medium">{code.grade}</span>
+                          </div>
+                        )}
+                      </div>
+                      
+                      <div className="mt-4 p-3 bg-blue-50 rounded-lg">
+                        <p className="text-xs text-blue-700">
+                          <span className="font-medium">Share this code:</span> Students can use code "{code.code}" during registration to join your class automatically.
+                        </p>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    );
+  };
+
   // Backup Manager View
   if (showBackupManager) {
     return (
