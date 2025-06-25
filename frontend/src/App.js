@@ -1609,6 +1609,7 @@ function App() {
 
     const handleSubmit = async (e) => {
       e.preventDefault();
+      console.log('Form submitted with data:', newCodeData);
       await createLoginCode(newCodeData);
       setShowCreateForm(false);
       setNewCodeData({
@@ -1621,6 +1622,11 @@ function App() {
       });
     };
 
+    const toggleForm = () => {
+      console.log('Toggle form clicked, current state:', showCreateForm);
+      setShowCreateForm(!showCreateForm);
+    };
+
     return (
       <div className="max-w-6xl mx-auto">
         <div className="bg-white rounded-2xl shadow-xl p-8">
@@ -1631,8 +1637,8 @@ function App() {
             </div>
             <div className="flex space-x-3">
               <button
-                onClick={() => setShowCreateForm(!showCreateForm)}
-                className="px-6 py-3 bg-gradient-to-r from-gold-500 to-gold-600 text-navy-900 rounded-lg font-semibold hover:from-gold-600 hover:to-gold-700 transition-all"
+                onClick={toggleForm}
+                className="px-6 py-3 bg-blue-500 text-white rounded-lg font-semibold hover:bg-blue-600 transition-all"
               >
                 {showCreateForm ? '✕ Cancel' : '+ Create New Code'}
               </button>
@@ -1645,10 +1651,102 @@ function App() {
             </div>
           </div>
 
-          {/* Create Form */}
+          {/* Debug Info */}
+          <div className="mb-4 p-2 bg-yellow-100 border border-yellow-300 rounded text-sm">
+            Debug: showCreateForm = {showCreateForm ? 'TRUE' : 'FALSE'}
+          </div>
+
+          {/* Always Visible Test Form for debugging */}
+          <div className="bg-blue-50 rounded-xl p-6 mb-8 border-2 border-blue-300">
+            <h3 className="text-xl font-semibold text-blue-800 mb-4">🔧 TEST: Create New Login Code (Always Visible)</h3>
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Class Name *</label>
+                  <input
+                    type="text"
+                    required
+                    className="w-full p-3 border-2 border-blue-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    value={newCodeData.class_name}
+                    onChange={(e) => setNewCodeData({...newCodeData, class_name: e.target.value})}
+                    placeholder="e.g., Test Debug Class"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Block Number</label>
+                  <input
+                    type="text"
+                    className="w-full p-3 border-2 border-blue-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    value={newCodeData.block_number}
+                    onChange={(e) => setNewCodeData({...newCodeData, block_number: e.target.value})}
+                    placeholder="e.g., B3"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">School</label>
+                  <input
+                    type="text"
+                    className="w-full p-3 border-2 border-blue-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    value={newCodeData.school}
+                    onChange={(e) => setNewCodeData({...newCodeData, school: e.target.value})}
+                    placeholder="e.g., Debug Test School"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Grade Level</label>
+                  <select
+                    className="w-full p-3 border-2 border-blue-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    value={newCodeData.grade}
+                    onChange={(e) => setNewCodeData({...newCodeData, grade: e.target.value})}
+                  >
+                    <option value="">Select Grade</option>
+                    <option value="6th">6th Grade</option>
+                    <option value="7th">7th Grade</option>
+                    <option value="8th">8th Grade</option>
+                    <option value="9th">9th Grade</option>
+                    <option value="10th">10th Grade</option>
+                    <option value="11th">11th Grade</option>
+                    <option value="12th">12th Grade</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Max Uses</label>
+                  <input
+                    type="number"
+                    min="1"
+                    max="1000"
+                    className="w-full p-3 border-2 border-blue-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    value={newCodeData.max_uses}
+                    onChange={(e) => setNewCodeData({...newCodeData, max_uses: parseInt(e.target.value) || 50})}
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Expires In (Days)</label>
+                  <input
+                    type="number"
+                    min="1"
+                    max="365"
+                    className="w-full p-3 border-2 border-blue-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    value={newCodeData.expires_in_days}
+                    onChange={(e) => setNewCodeData({...newCodeData, expires_in_days: parseInt(e.target.value) || 30})}
+                  />
+                </div>
+              </div>
+              <div className="pt-4">
+                <button
+                  type="submit"
+                  className="w-full px-8 py-4 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition-all text-lg"
+                >
+                  🔑 Generate Login Code (TEST)
+                </button>
+              </div>
+            </form>
+          </div>
+
+          {/* Conditional Form (for comparison) */}
           {showCreateForm && (
             <div className="bg-gray-50 rounded-xl p-6 mb-8">
-              <h3 className="text-xl font-semibold text-navy-800 mb-4">Create New Login Code</h3>
+              <h3 className="text-xl font-semibold text-navy-800 mb-4">Create New Login Code (Conditional)</h3>
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
